@@ -66,6 +66,41 @@ get_all_js_list(DOM, List) :-
 uses_js(DOM) :- xpath(DOM,//script(@type='text/javascript'),_).
 
 %----------------%
+% META FUNCTIONS %
+%----------------%
+
+% Get all meta elems in the given HTML (list form)
+get_all_meta_list(DOM, List) :-
+	setof(L, xpath(DOM,//meta,L), List).
+
+% Get charset metatag
+get_html_charset([],'No defined charset').
+get_html_charset([M|MetaTags], Charset) :-
+		xpath(M,//meta(@charset),Charset) ->
+		    !;
+		    ((xpath(M,//meta(@http-equiv='content-type'),_);
+		     xpath(M,//meta(@http-equiv='Content-Type'),_)) ->
+		        (xpath(M,//meta(@content),Charset),!);
+			get_html_charset(MetaTags,Charset)).
+%get_html_charset([M|_], Charset) :-
+%	xpath(M,//meta(@charset),Charset),!.
+%get_html_charset([M|_], Charset) :-
+%	xpath(M,//meta(@http-equiv='Content-Type'),_),!,
+%	xpath(M,//meta(@content),Charset).
+%get_html_charset([_|MetaTags],Charset) :-
+%	get_html_charset(MetaTags,Charset).
+
+% Get all content metatags. They will be grouped into pairs with the
+% form ContentType-ContentValue
+get_all_content_meta([], []).
+get_all_content_meta([M|MetaTags], [X-Y|CMetas]) :-
+	xpath(M,//meta(@name),X),!,
+	xpath(M,//meta(@content),Y),
+	get_all_content_meta(MetaTags,CMetas).
+get_all_content_meta([_|MetaTags], CMetas) :-
+		     get_all_content_meta(MetaTags, CMetas).
+
+%----------------%
 % HTML FUNCTIONS %
 %----------------%
 
@@ -103,18 +138,26 @@ process_url(URL) :-
 	get_all_style_list(DOM, CssLinks),
 	% Get javascript links
 	get_all_js_list(DOM, JSLinks),
+	% Get all meta elems
+	get_all_meta_list(DOM, MetaElms),
+	% Get HTML charset
+	get_html_charset(MetaElms, Charset),
+	% Get content metas
+	%get_all_content_meta(MetaElms, CMetas),
 	% DEBUG: write retrieved links
-	write('All links ->'),writeln(LinkList),
-	write('Valid links ->'),writeln(ValidLinks),
-	write('Css links ->'),writeln(CssLinks),
-	write('Javascript links ->'),writeln(JSLinks).
+	%write('All links ->'),writeln(LinkList),
+	%write('Valid links ->'),writeln(ValidLinks),
+	%write('Css links ->'),writeln(CssLinks),
+	%write('Javascript links ->'),writeln(JSLinks),
+	%write('Content meta tags ->'),writeln(CMetas).
+	write('Charset ->'),writeln(Charset).
 
 %----------------------%
 %  TESTING PREDICATES  %
 %----------------------%
 
 % Test predicate with Mitmi URL
-test1 :- process_url('http://www.mitmiapp.com').
+test1 :- process_url('http://www.fdi.ucm.es/').
 
 % Test predicate to check for links list composing
 test2(L,C) :- load_html('http://www.mitmiapp.com',DOM),
