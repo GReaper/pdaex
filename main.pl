@@ -39,6 +39,16 @@ get_valid_links(DOM, List) :-
 	findall(L, (xpath(DOM,//a(@href),L),is_valid_link(L)), List).
 
 
+%---------------%
+% CSS FUNCTIONS %
+%---------------%
+
+% Get all links list
+get_all_css_list(DOM, List) :-
+	% TODO: use setof? (repetitions)
+	findall(L, (xpath(DOM,//link(@type='text/css'),L1),
+		    xpath(L1,//link(@href),L)), List).
+
 %----------------%
 % HTML FUNCTIONS %
 %----------------%
@@ -73,9 +83,12 @@ process_url(URL) :-
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
 	get_valid_links(DOM, ValidLinks),
+	% Get css links
+	get_all_css_list(DOM,CssLinks),
 	% DEBUG: write retrieved links
 	write('All links ->'),writeln(LinkList),
-	write('Valid links ->'),writeln(ValidLinks).
+	write('Valid links ->'),writeln(ValidLinks),
+	write('Css links ->'),writeln(CssLinks).
 
 %----------------------%
 %  TESTING PREDICATES  %
