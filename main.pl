@@ -22,21 +22,18 @@ get_link_labels(DOM, HREF):-
 
 % Get all links list
 get_all_link_list(DOM, List) :-
-	% TODO: use setof? (repetitions)
-	findall(L, xpath(DOM,//a(@href),L), List).
+	setof(L, xpath(DOM,//a(@href),L), List).
 
 % Get all HTTP or HTTPS links (in list form)
 get_link_list(DOM, List) :-
-	% TODO: use setof? (repetitions)
-	findall(L,
-		(xpath(DOM,//a(@href),L),
-		(startsWithHttp(L);startsWithHttps(L))),
-		List).
+	setof(L,
+	      (xpath(DOM,//a(@href),L),
+	      (startsWithHttp(L);startsWithHttps(L))),
+	      List).
 
 % Get only valid links
 get_valid_links(DOM, List) :-
-	% TODO: use setof? (repetitions)
-	findall(L, (xpath(DOM,//a(@href),L),is_valid_link(L)), List).
+	setof(L, (xpath(DOM,//a(@href),L),is_valid_link(L)), List).
 
 
 %---------------%
@@ -45,8 +42,7 @@ get_valid_links(DOM, List) :-
 
 % Get all stylesheet links list
 get_all_style_list(DOM, List) :-
-	% TODO: use setof? (repetitions)
-	findall(L, (xpath(DOM,//link(@rel='stylesheet'),L1),
+	setof(L, (xpath(DOM,//link(@rel='stylesheet'),L1),
 		    xpath(L1,//link(@href),L)), List).
 
 
@@ -56,8 +52,7 @@ get_all_style_list(DOM, List) :-
 
 % Get all Javascript links list
 get_all_js_list(DOM, List) :-
-	% TODO: use setof? (repetitions)
-	findall(L, (xpath(DOM,//script(@type='text/javascript'),L1),
+	setof(L, (xpath(DOM,//script(@type='text/javascript'),L1),
 		    xpath(L1,//script(@src),L)), List).
 
 %----------------%
