@@ -45,6 +45,11 @@ get_all_style_list(DOM, List) :-
 	setof(L, (xpath(DOM,//link(@rel='stylesheet'),L1),
 		    xpath(L1,//link(@href),L)), List).
 
+% This predicate tests if there is some style in the given HTML.
+% It is neccesary because a style section may not be linked via <link>
+% label
+uses_style(DOM) :- xpath(DOM,//style,_);
+                   xpath(DOM,//link(@type='text/css'),_).
 
 %--------------%
 % JS FUNCTIONS %
@@ -54,6 +59,11 @@ get_all_style_list(DOM, List) :-
 get_all_js_list(DOM, List) :-
 	setof(L, (xpath(DOM,//script(@type='text/javascript'),L1),
 		    xpath(L1,//script(@src),L)), List).
+
+% This predicate tests if there is some JS script in the given DOM.
+% It is neccesary because a JS script may not be linked via <script>
+% label
+uses_js(DOM) :- xpath(DOM,//script(@type='text/javascript'),_).
 
 %----------------%
 % HTML FUNCTIONS %
@@ -110,4 +120,19 @@ test1 :- process_url('http://www.mitmiapp.com').
 test2(L,C) :- load_html('http://www.mitmiapp.com',DOM),
 	get_link_list(DOM, L),
 	get_all_style_list(DOM, C).
+
+% Test whether an HTML has some style code
+test3 :- load_html('http://www.mitmiapp.com',DOM),
+	uses_style(DOM).
+
+% Test whether an HTML has some JS code
+test4 :- load_html('http://www.mitmiapp.com',DOM),
+	uses_js(DOM).
+
+
+
+
+
+
+
 
