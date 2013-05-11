@@ -74,6 +74,12 @@ get_all_meta_list(DOM, List) :-
 	setof(L, xpath(DOM,//meta,L), List).
 
 % Get charset metatag
+get_html_charset([],'No defined charset tag').
+get_html_charset([M|_], Charset) :-
+	xpath(M,//meta(@charset),Charset),!.
+get_html_charset([_|MetaTags],Charset) :-
+	get_html_charset(MetaTags,Charset).
+
 % This section doesn't work because Prolog don't recognize the
 % http-equiv attribute. This can be checked later and improved
 %get_html_charset([],'No defined charset').
@@ -138,13 +144,13 @@ process_url(URL) :-
 	% Get HTML charset
 	get_html_charset(MetaElms, Charset),
 	% Get content metas
-	%get_all_content_meta(MetaElms, CMetas),
+	get_all_content_meta(MetaElms, CMetas),
 	% DEBUG: write retrieved links
-	%write('All links ->'),writeln(LinkList),
-	%write('Valid links ->'),writeln(ValidLinks),
-	%write('Css links ->'),writeln(CssLinks),
-	%write('Javascript links ->'),writeln(JSLinks),
-	%write('Content meta tags ->'),writeln(CMetas).
+	write('All links ->'),writeln(LinkList),nl,
+	write('Valid links ->'),writeln(ValidLinks),nl,
+	write('Css links ->'),writeln(CssLinks),nl,
+	write('Javascript links ->'),writeln(JSLinks),nl,
+	write('Content meta tags ->'),writeln(CMetas),nl,
 	write('Charset ->'),writeln(Charset).
 
 %----------------------%
