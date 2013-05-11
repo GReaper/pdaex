@@ -145,7 +145,7 @@ generate_graph(BaseUrl,[L|Ls],Graph) :-
 % Process URL with no depth (only base URL)
 % In this case we only take all HTML info without
 % making the depth graph (only basic one)
-process_url(URL,0,Graph) :-
+process_url(URL, 0, OutGraph) :-
 	% Get URL HTML as DOM structure
 	load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
@@ -163,7 +163,7 @@ process_url(URL,0,Graph) :-
 	% Get content metas
 	get_all_content_meta(MetaElms, CMetas),
 	% Generate basic graph
-	generate_graph(URL,LinkList,Graph),
+	generate_graph(URL, LinkList, OutGraph),
 	% DEBUG: write retrieved data
 	write('All links ->'),writeln(LinkList),nl,
 	write('Valid links ->'),writeln(ValidLinks),nl,
@@ -171,13 +171,14 @@ process_url(URL,0,Graph) :-
 	write('Javascript links ->'),writeln(JSLinks),nl,
 	write('Content meta tags ->'),writeln(CMetas),nl,
 	write('Charset ->'),writeln(Charset),
-	write('Graph ->'),writeln(Graph),
+	% Dump graph
+	write('Graph ->'),writeln(OutGraph),
 	% Don't try any predicate more
 	!.
 
 % Process and URL with depth > 1. In this case we must build
 % the links graph and explore the new websites
-process_url(URL,N,Graph) :-
+process_url(URL, N, OutGraph) :-
         % Get URL HTML as DOM structure
 	load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
@@ -195,7 +196,7 @@ process_url(URL,N,Graph) :-
 	% Get content metas
 	get_all_content_meta(MetaElms, CMetas),
 	% Generate basic graph
-	generate_graph(URL,LinkList,Graph),
+	generate_graph(URL, LinkList, Graph),
 	% DEBUG: write retrieved data
 	write('All links ->'),writeln(LinkList),nl,
 	write('Valid links ->'),writeln(ValidLinks),nl,
@@ -203,22 +204,33 @@ process_url(URL,N,Graph) :-
 	write('Javascript links ->'),writeln(JSLinks),nl,
 	write('Content meta tags ->'),writeln(CMetas),nl,
 	write('Charset ->'),writeln(Charset),
-	write('Graph ->'),writeln(Graph),
 	% Reduce exploring depth
 	M is N-1,
 	% Evaluate other levels
-	evaluate_level(ValidLinks,M),
+	evaluate_level(ValidLinks, M, Graph, OutGraph),
+	% Dump graph
+	write('Graph ->'),writeln(OutGraph),
 	% Don't try any predicate more
 	!.
 
 % Evaluate remaining levels. We must take care of timeout or redirects
 % to HTTPS, so we will take all exceptions and avoid processing the
 % associated webs
-evaluate_level([],_).
-evaluate_level([L|Ls],N) :-
-   catch((process_url(L,N,_),evaluate_level(Ls,N)),
-	 _,
-	 (evaluate_level(Ls,N))).
+evaluate_level([], _ , Graph, Graph).
+evaluate_level([L|Ls], N, Graph, OutGraph) :-
+	catch(
+	      % Try section
+	      (
+	          process_url(L, N, LevelGraph),
+	          % Graph union
+	          ugraph_union(Graph, LevelGraph, OGraph1),
+		  evaluate_level(Ls, N, OGraph1, OutGraph)
+	      ),
+	      % Exception taking
+	      _,
+	      % Catch section
+	      (	  evaluate_level(Ls, N, Graph, OutGraph))
+	      ).
 
 %----------------------%
 %  TESTING PREDICATES  %
@@ -242,6 +254,9 @@ test4 :- load_html('http://www.mitmiapp.com',DOM),
 
 % Test predicate with Mitmi URL and exploring depth
 test5 :- process_url('http://www.mitmiapp.com/',1,_).
+
+% Test predicate with Fdi URL and exploring depth
+test6 :- process_url('http://www.fdi.ucm.es/',1,_).
 
 
 
