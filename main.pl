@@ -153,9 +153,9 @@ process_url(URL, 0, OutGraph) :-
 	% Get only valid links to process (HTTP)
 	get_valid_links(DOM, ValidLinks),
 	% Get stylesheet links
-	get_all_style_list(DOM, CssLinks),
+	%get_all_style_list(DOM, CssLinks),
 	% Get javascript links
-	get_all_js_list(DOM, JSLinks),
+	%get_all_js_list(DOM, JSLinks),
 	% Get all meta elems
 	get_all_meta_list(DOM, MetaElms),
 	% Get HTML charset
@@ -167,8 +167,8 @@ process_url(URL, 0, OutGraph) :-
 	% DEBUG: write retrieved data
 	write('All links ->'),writeln(LinkList),nl,
 	write('Valid links ->'),writeln(ValidLinks),nl,
-	write('Css links ->'),writeln(CssLinks),nl,
-	write('Javascript links ->'),writeln(JSLinks),nl,
+	%write('Css links ->'),writeln(CssLinks),nl,
+	%write('Javascript links ->'),writeln(JSLinks),nl,
 	write('Content meta tags ->'),writeln(CMetas),nl,
 	write('Charset ->'),writeln(Charset),
 	% Dump graph
