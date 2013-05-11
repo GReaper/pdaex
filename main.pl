@@ -42,7 +42,10 @@ get_valid_links(DOM, List) :-
 
 % Get all stylesheet links list
 get_all_style_list(DOM, List) :-
-	setof(L, xpath(DOM,//link(@rel='stylesheet',@href),L), List).
+	setof(L, xpath(DOM,//link(@rel='stylesheet',@href),L), List),!.
+% Clause needed to avoid style retrieving problems. If it is not set,
+% sometimes false can be returned and stop execution
+get_all_style_list(_,[]).
 
 % This predicate tests if there is some style in the given HTML.
 % It is neccesary because a style section may not be linked via <link>
@@ -58,7 +61,10 @@ uses_style(DOM) :- xpath(DOM,//style,_);
 get_all_js_list(DOM, List) :-
 	setof(L,
 	      xpath(DOM,//script(@type='text/javascript',@src),L),
-	      List).
+	      List),!.
+% Clause needed to avoid JS retrieving problems. If it is not set,
+% sometimes false can be returned and stop execution
+get_all_js_list(_,[]).
 
 % This predicate tests if there is some JS script in the given DOM.
 % It is neccesary because a JS script may not be linked via <script>
@@ -153,9 +159,9 @@ process_url(URL, 0, OutGraph) :-
 	% Get only valid links to process (HTTP)
 	get_valid_links(DOM, ValidLinks),
 	% Get stylesheet links
-	%get_all_style_list(DOM, CssLinks),
+	get_all_style_list(DOM, CssLinks),
 	% Get javascript links
-	%get_all_js_list(DOM, JSLinks),
+	get_all_js_list(DOM, JSLinks),
 	% Get all meta elems
 	get_all_meta_list(DOM, MetaElms),
 	% Get HTML charset
@@ -167,8 +173,8 @@ process_url(URL, 0, OutGraph) :-
 	% DEBUG: write retrieved data
 	write('All links ->'),writeln(LinkList),nl,
 	write('Valid links ->'),writeln(ValidLinks),nl,
-	%write('Css links ->'),writeln(CssLinks),nl,
-	%write('Javascript links ->'),writeln(JSLinks),nl,
+	write('Css links ->'),writeln(CssLinks),nl,
+	write('Javascript links ->'),writeln(JSLinks),nl,
 	write('Content meta tags ->'),writeln(CMetas),nl,
 	write('Charset ->'),writeln(Charset),
 	% Dump graph
@@ -264,6 +270,12 @@ test6 :- process_url('http://www.fdi.ucm.es/',1,OG)
 test7(D) :- process_url('http://www.fdi.ucm.es/',D,OG)
 	 ,nl,nl,write('OG -> '),writeln(OG).
 
+% This predicate fails, it should be debugged!!!
+test8 :- process_url('http://www.fdi.ucm.es/',2,OG)
+	 ,nl,nl,write('OG -> '),writeln(OG).
+
+% General predicate test
+genTest(URL, Depth) :- process_url(URL, Depth, _).
 
 
 
