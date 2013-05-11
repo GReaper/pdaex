@@ -115,7 +115,8 @@ load_html(URL, DOM) :-
 					load_structure(stream(In),
 					DOM,
 					[ dtd(DTD),
-						dialect(sgml),
+					        % CHANGED: dialect(sgml)
+						dialect(xml),
 						shorttag(false),
 						max_errors(-1),
 						syntax_errors(quiet)
@@ -123,14 +124,28 @@ load_html(URL, DOM) :-
 					),
 					close(In)).
 
+%------------------%
+% GRAPHS FUNCTIONS %
+%------------------%
+
+% Generate a graph with depth 1 with the given params
+generate_graph(BaseUrl,[],Graph) :-
+	% Set graph root (base url)
+	add_vertices([],[BaseUrl],Graph).
+generate_graph(BaseUrl,[L|Ls],Graph) :-
+	generate_graph(BaseUrl,Ls,G1),
+	% Set graph root (base url)
+	add_vertices(G1,[BaseUrl],G2),
+	add_edges(G2,[BaseUrl-L],Graph).
+
 %----------------%
 %  MAIN PROGRAM  %
 %----------------%
 
 % Process URL with no depth (only base URL)
 % In this case we only take all HTML info without
-% making the link graph
-process_url(URL,0) :-
+% making the depth graph (only basic one)
+process_url(URL,0,Graph) :-
 	% Get URL HTML as DOM structure
 	load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
@@ -147,6 +162,8 @@ process_url(URL,0) :-
 	get_html_charset(MetaElms, Charset),
 	% Get content metas
 	get_all_content_meta(MetaElms, CMetas),
+	% Generate basic graph
+	generate_graph(URL,LinkList,Graph),
 	% DEBUG: write retrieved data
 	write('All links ->'),writeln(LinkList),nl,
 	write('Valid links ->'),writeln(ValidLinks),nl,
@@ -154,12 +171,13 @@ process_url(URL,0) :-
 	write('Javascript links ->'),writeln(JSLinks),nl,
 	write('Content meta tags ->'),writeln(CMetas),nl,
 	write('Charset ->'),writeln(Charset),
+	write('Graph ->'),writeln(Graph),
 	% Don't try any predicate more
 	!.
 
 % Process and URL with depth > 1. In this case we must build
 % the links graph and explore the new websites
-process_url(URL,N) :-
+process_url(URL,N,Graph) :-
         % Get URL HTML as DOM structure
 	load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
@@ -176,6 +194,8 @@ process_url(URL,N) :-
 	get_html_charset(MetaElms, Charset),
 	% Get content metas
 	get_all_content_meta(MetaElms, CMetas),
+	% Generate basic graph
+	generate_graph(URL,LinkList,Graph),
 	% DEBUG: write retrieved data
 	write('All links ->'),writeln(LinkList),nl,
 	write('Valid links ->'),writeln(ValidLinks),nl,
@@ -183,6 +203,7 @@ process_url(URL,N) :-
 	write('Javascript links ->'),writeln(JSLinks),nl,
 	write('Content meta tags ->'),writeln(CMetas),nl,
 	write('Charset ->'),writeln(Charset),
+	write('Graph ->'),writeln(Graph),
 	% Reduce exploring depth
 	M is N-1,
 	% Evaluate other levels
@@ -195,7 +216,7 @@ process_url(URL,N) :-
 % associated webs
 evaluate_level([],_).
 evaluate_level([L|Ls],N) :-
-   catch((process_url(L,N),evaluate_level(Ls,N)),
+   catch((process_url(L,N,_),evaluate_level(Ls,N)),
 	 _,
 	 (evaluate_level(Ls,N))).
 
@@ -204,7 +225,7 @@ evaluate_level([L|Ls],N) :-
 %----------------------%
 
 % Test predicate with FDI URL and no exploring depth
-test1 :- process_url('http://www.fdi.ucm.es/',0).
+test1 :- process_url('http://www.fdi.ucm.es/',0,_).
 
 % Test predicate to check for links list composing
 test2(L,C) :- load_html('http://www.mitmiapp.com',DOM),
@@ -220,7 +241,7 @@ test4 :- load_html('http://www.mitmiapp.com',DOM),
 	uses_js(DOM).
 
 % Test predicate with Mitmi URL and exploring depth
-test5 :- process_url('http://www.mitmiapp.com/',1).
+test5 :- process_url('http://www.mitmiapp.com/',1,_).
 
 
 
