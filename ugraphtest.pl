@@ -85,3 +85,14 @@ test11 :- test1(G),
 test12 :- test1(G),
 	del_edges(G,[c-e],NG),
 	listaElems(NG).
+
+% Probar unión de grafos. En este caso el test 1 con test 8
+test13 :- test1(G),
+	% Generar test 8
+	add_vertices(G,[f],NG1),
+	add_edges(NG1,[e-f,f-b],NG2),
+	del_vertices(NG2,[b],NGF),
+	% Unir grafos
+	ugraph_union(G,NGF,CG),
+	listaElems(CG).
+
