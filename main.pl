@@ -253,11 +253,16 @@ test4 :- load_html('http://www.mitmiapp.com',DOM),
 	uses_js(DOM).
 
 % Test predicate with Mitmi URL and exploring depth
-test5 :- process_url('http://www.mitmiapp.com/',1,_).
+test5 :- process_url('http://www.mitmiapp.com/',1,OG)
+	 ,nl,nl,write('OG -> '),writeln(OG).
 
 % Test predicate with Fdi URL and exploring depth
-test6 :- process_url('http://www.fdi.ucm.es/',1,_).
+test6 :- process_url('http://www.fdi.ucm.es/',1,OG)
+	 ,nl,nl,write('OG -> '),writeln(OG).
 
+% Test predicate with Fdi URL and optional exploring depth
+test7(D) :- process_url('http://www.fdi.ucm.es/',D,OG)
+	 ,nl,nl,write('OG -> '),writeln(OG).
 
 
 
