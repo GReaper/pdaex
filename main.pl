@@ -42,8 +42,7 @@ get_valid_links(DOM, List) :-
 
 % Get all stylesheet links list
 get_all_style_list(DOM, List) :-
-	setof(L, (xpath(DOM,//link(@rel='stylesheet'),L1),
-		    xpath(L1,//link(@href),L)), List).
+	setof(L, xpath(DOM,//link(@rel='stylesheet',@href),L), List).
 
 % This predicate tests if there is some style in the given HTML.
 % It is neccesary because a style section may not be linked via <link>
@@ -57,8 +56,9 @@ uses_style(DOM) :- xpath(DOM,//style,_);
 
 % Get all Javascript links list
 get_all_js_list(DOM, List) :-
-	setof(L, (xpath(DOM,//script(@type='text/javascript'),L1),
-		    xpath(L1,//script(@src),L)), List).
+	setof(L,
+	      xpath(DOM,//script(@type='text/javascript',@src),L),
+	      List).
 
 % This predicate tests if there is some JS script in the given DOM.
 % It is neccesary because a JS script may not be linked via <script>
