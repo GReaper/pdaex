@@ -80,7 +80,7 @@ get_html_charset([M|_], Charset) :-
 get_html_charset([_|MetaTags],Charset) :-
 	get_html_charset(MetaTags,Charset).
 
-% This section doesn't work because Prolog don't recognize the
+% This section doesn't work because Prolog doesn't recognize the
 % http-equiv attribute. This can be checked later and improved
 %get_html_charset([],'No defined charset').
 %get_html_charset([M|_], Charset) :-
@@ -145,7 +145,7 @@ process_url(URL) :-
 	get_html_charset(MetaElms, Charset),
 	% Get content metas
 	get_all_content_meta(MetaElms, CMetas),
-	% DEBUG: write retrieved links
+	% DEBUG: write retrieved data
 	write('All links ->'),writeln(LinkList),nl,
 	write('Valid links ->'),writeln(ValidLinks),nl,
 	write('Css links ->'),writeln(CssLinks),nl,
