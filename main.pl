@@ -127,8 +127,10 @@ load_html(URL, DOM) :-
 %  MAIN PROGRAM  %
 %----------------%
 
-% Main "entry point".
-process_url(URL) :-
+% Process URL with no depth (only base URL)
+% In this case we only take all HTML info without
+% making the link graph
+process_url(URL,0) :-
 	% Get URL HTML as DOM structure
 	load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
@@ -151,14 +153,55 @@ process_url(URL) :-
 	write('Css links ->'),writeln(CssLinks),nl,
 	write('Javascript links ->'),writeln(JSLinks),nl,
 	write('Content meta tags ->'),writeln(CMetas),nl,
-	write('Charset ->'),writeln(Charset).
+	write('Charset ->'),writeln(Charset),
+	% Don't try any predicate more
+	!.
+
+% Process and URL with depth > 1. In this case we must build
+% the links graph and explore the new websites
+process_url(URL,N) :-
+        % Get URL HTML as DOM structure
+	load_html(URL, DOM),
+	% Get all link labels from DOM (list form)
+	get_link_list(DOM, LinkList),
+	% Get only valid links to process (HTTP)
+	get_valid_links(DOM, ValidLinks),
+	% Get stylesheet links
+	get_all_style_list(DOM, CssLinks),
+	% Get javascript links
+	get_all_js_list(DOM, JSLinks),
+	% Get all meta elems
+	get_all_meta_list(DOM, MetaElms),
+	% Get HTML charset
+	get_html_charset(MetaElms, Charset),
+	% Get content metas
+	get_all_content_meta(MetaElms, CMetas),
+	% DEBUG: write retrieved data
+	write('All links ->'),writeln(LinkList),nl,
+	write('Valid links ->'),writeln(ValidLinks),nl,
+	write('Css links ->'),writeln(CssLinks),nl,
+	write('Javascript links ->'),writeln(JSLinks),nl,
+	write('Content meta tags ->'),writeln(CMetas),nl,
+	write('Charset ->'),writeln(Charset),
+	% Reduce exploring depth
+	M is N-1,
+	% Evaluate other levels
+	evaluate_level(ValidLinks,M),
+	% Don't try any predicate more
+	!.
+
+% Evaluate remaining levels
+evaluate_level([],_).
+evaluate_level([L|Ls],N) :-
+	process_url(L,N),
+	evaluate_level(Ls,N).
 
 %----------------------%
 %  TESTING PREDICATES  %
 %----------------------%
 
-% Test predicate with Mitmi URL
-test1 :- process_url('http://www.fdi.ucm.es/').
+% Test predicate with FDI URL and no exploring depth
+test1 :- process_url('http://www.fdi.ucm.es/',0).
 
 % Test predicate to check for links list composing
 test2(L,C) :- load_html('http://www.mitmiapp.com',DOM),
@@ -173,6 +216,8 @@ test3 :- load_html('http://www.mitmiapp.com',DOM),
 test4 :- load_html('http://www.mitmiapp.com',DOM),
 	uses_js(DOM).
 
+% Test predicate with Mitmi URL and exploring depth
+test5 :- process_url('http://www.mitmiapp.com/',1).
 
 
 
