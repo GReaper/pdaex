@@ -74,18 +74,13 @@ get_all_meta_list(DOM, List) :-
 	setof(L, xpath(DOM,//meta,L), List).
 
 % Get charset metatag
-get_html_charset([],'No defined charset').
-get_html_charset([M|MetaTags], Charset) :-
-		xpath(M,//meta(@charset),Charset) ->
-		    !;
-		    ((xpath(M,//meta(@http-equiv='content-type'),_);
-		     xpath(M,//meta(@http-equiv='Content-Type'),_)) ->
-		        (xpath(M,//meta(@content),Charset),!);
-			get_html_charset(MetaTags,Charset)).
+% This section doesn't work because Prolog don't recognize the
+% http-equiv attribute. This can be checked later and improved
+%get_html_charset([],'No defined charset').
 %get_html_charset([M|_], Charset) :-
 %	xpath(M,//meta(@charset),Charset),!.
 %get_html_charset([M|_], Charset) :-
-%	xpath(M,//meta(@http-equiv='Content-Type'),_),!,
+%	xpath(M,//meta(@http-equiv='content-type'),_),!,
 %	xpath(M,//meta(@content),Charset).
 %get_html_charset([_|MetaTags],Charset) :-
 %	get_html_charset(MetaTags,Charset).
