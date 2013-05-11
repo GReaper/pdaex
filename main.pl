@@ -190,11 +190,14 @@ process_url(URL,N) :-
 	% Don't try any predicate more
 	!.
 
-% Evaluate remaining levels
+% Evaluate remaining levels. We must take care of timeout or redirects
+% to HTTPS, so we will take all exceptions and avoid processing the
+% associated webs
 evaluate_level([],_).
 evaluate_level([L|Ls],N) :-
-	process_url(L,N),
-	evaluate_level(Ls,N).
+   catch((process_url(L,N),evaluate_level(Ls,N)),
+	 _,
+	 (evaluate_level(Ls,N))).
 
 %----------------------%
 %  TESTING PREDICATES  %
