@@ -5,6 +5,9 @@
 % LINKS FUNCTIONS %
 %-----------------%
 
+% Test wither an URL ends with the given pattern
+endsWith(URL, Pattern) :- sub_string(URL,_,_,0,Pattern).
+
 % Test whether an URL starts with 'http://'
 startsWithHttp(URL) :- sub_string(URL,0,_,_,'http://').
 
@@ -13,7 +16,23 @@ startsWithHttps(URL) :- sub_string(URL,0,_,_,'https://').
 
 % Test whether an URL is a valid link to be processed. Actually we
 % only support HTTP (not SSL) connections.
-is_valid_link(URL) :- startsWithHttp(URL).
+is_valid_link(URL) :- startsWithHttp(URL),
+	% We only support exploring html valid formats
+	(
+	    endsWith(URL,'/');
+	    endsWith(URL,'.html');
+	    endsWith(URL,'.htm');
+	    endsWith(URL,'.ihtml');
+	    endsWith(URL,'.ghtml');
+	    endsWith(URL,'.phtml');
+	    endsWith(URL,'.shtml');
+	    endsWith(URL,'.asp');
+	    endsWith(URL,'.jsp');
+	    endsWith(URL,'.pl');
+	    endsWith(URL,'.php');
+	    endsWith(URL,'.cfm');
+	    endsWith(URL,'.xml')
+	).
 
 % Get all link labels from a DOM structure
 get_link_labels(DOM, HREF):-
