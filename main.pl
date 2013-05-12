@@ -29,11 +29,13 @@ get_link_list(DOM, List) :-
 	setof(L,
 	      (xpath(DOM,//a(@href),L),
 	      (startsWithHttp(L);startsWithHttps(L))),
-	      List).
+	      List),!.
+get_link_list(_,[]).
 
 % Get only valid links
 get_valid_links(DOM, List) :-
-	setof(L, (xpath(DOM,//a(@href),L),is_valid_link(L)), List).
+	setof(L, (xpath(DOM,//a(@href),L),is_valid_link(L)), List),!.
+get_valid_links(_,[]).
 
 
 %---------------%
@@ -77,7 +79,8 @@ uses_js(DOM) :- xpath(DOM,//script(@type='text/javascript'),_).
 
 % Get all meta elems in the given HTML (list form)
 get_all_meta_list(DOM, List) :-
-	setof(L, xpath(DOM,//meta,L), List).
+	setof(L, xpath(DOM,//meta,L), List),!.
+get_all_meta_list(_, []).
 
 % Get charset metatag
 get_html_charset([],'No defined charset tag').
