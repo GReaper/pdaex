@@ -201,6 +201,12 @@ process_url(URL, 0, OutGraph) :-
 	write('Charset ->'),writeln(Charset),
 	% Dump graph
 	write('Graph ->'),writeln(OutGraph),
+	% File dumping test
+	open('test2.txt',write,Stream),
+	write(Stream,'URL -> '),write(Stream,URL),nl(Stream),
+	write(Stream,'Graph -> '),write(Stream,OutGraph),nl(Stream),
+	nl(Stream),
+	close(Stream),
 	% Don't try any predicate more
 	!.
 
@@ -238,6 +244,14 @@ process_url(URL, N, OutGraph) :-
 	evaluate_level(ValidLinks, M, Graph, OutGraph),
 	% Dump graph
 	write('Graph ->'),writeln(OutGraph),
+	% File dumping test
+	open('test1.txt',write,Stream),
+	write(Stream,'URL -> '),write(Stream,URL),nl(Stream),
+	write(Stream,'Graph -> '),write(Stream,OutGraph),nl(Stream),
+	vertices(OutGraph,V),
+	write(Stream,'Aristas -> '),write(Stream,V),nl(Stream),
+	nl(Stream),
+	close(Stream),
 	% Don't try any predicate more
 	!.
 
