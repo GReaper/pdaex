@@ -1,9 +1,10 @@
 :- use_module(library(http/http_open)).
 :- use_module(library(xpath)).
+:- use_module(library(url)).
 
-%-----------------%
-% LINKS FUNCTIONS %
-%-----------------%
+%------------------%
+% STRING FUNCTIONS %
+%------------------%
 
 % Test wither an URL ends with the given pattern
 endsWith(URL, Pattern) :- sub_string(URL,_,_,0,Pattern).
@@ -13,6 +14,22 @@ startsWithHttp(URL) :- sub_string(URL,0,_,_,'http://').
 
 % Test whether an URL starts with 'https://'
 startsWithHttps(URL) :- sub_string(URL,0,_,_,'https://').
+
+% Extract host name from the given URL
+extract_host_name(URL,Host) :-
+		parse_url(URL, Attr),
+		get_host(Attr,Host),!.
+extract_host_name(URL,URL).
+
+% This function gets the host name from the URL attributes
+% retrieved with URL library
+get_host([],_) :- fail.
+get_host([host(H) | _],H) :- !.
+get_host([_ | Ls], H) :- get_host(Ls, H).
+
+%-----------------%
+% LINKS FUNCTIONS %
+%-----------------%
 
 % Test whether an URL is a valid link to be processed. Actually we
 % only support HTTP (not SSL) connections.
@@ -154,7 +171,7 @@ load_html(URL, DOM) :-
 					load_structure(stream(In),
 					DOM,
 					[ dtd(DTD),
-					        % CHANGED: dialect(sgml)
+					    % CHANGED: dialect(sgml)
 						dialect(xml),
 						shorttag(false),
 						max_errors(-1),
@@ -169,13 +186,19 @@ load_html(URL, DOM) :-
 
 % Generate a graph with depth 1 with the given params
 generate_graph(BaseUrl,[],Graph) :-
+	% Get host name (if possible)
+	extract_host_name(BaseUrl,Host),
 	% Set graph root (base url)
-	add_vertices([],[BaseUrl],Graph).
+	add_vertices([],[Host],Graph).
 generate_graph(BaseUrl,[L|Ls],Graph) :-
-	generate_graph(BaseUrl,Ls,G1),
-	% Set graph root (base url)
-	add_vertices(G1,[BaseUrl],G2),
-	add_edges(G2,[BaseUrl-L],Graph).
+	% Get host name (if possible)
+	extract_host_name(BaseUrl,Host),
+	generate_graph(Host,Ls,G1),
+	% Add current URL to graph (needed?)
+	add_vertices(G1,[Host],G2),
+	% Get host name (if possible)
+	extract_host_name(L,LHost),
+	add_edges(G2,[Host-LHost],Graph).
 
 %----------------%
 %  MAIN PROGRAM  %
@@ -323,8 +346,3 @@ test8 :- process_url('http://www.fdi.ucm.es/',2,OG)
 
 % General predicate test
 genTest(URL, Depth) :- process_url(URL, Depth, _).
-
-
-
-
-
