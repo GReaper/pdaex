@@ -19,6 +19,12 @@ startsWithHttps(URL) :- sub_string(URL,0,_,_,'https://').
 is_valid_link(URL) :- startsWithHttp(URL),
 	% We only support exploring html valid formats
 	(
+	    is_valid_output(URL);
+	    is_valid_host(URL)
+	).
+
+% Test if an URL is a valid HTML content output
+is_valid_output(URL) :- 
 	    endsWith(URL,'/');
 	    endsWith(URL,'.html');
 	    endsWith(URL,'.htm');
@@ -31,8 +37,13 @@ is_valid_link(URL) :- startsWithHttp(URL),
 	    endsWith(URL,'.pl');
 	    endsWith(URL,'.php');
 	    endsWith(URL,'.cfm');
-	    endsWith(URL,'.xml')
-	).
+	    endsWith(URL,'.xml').
+
+% Test if an URL is a valid domain name (without index.xxxx)
+% We will only take into account most commonly used host endings
+is_valid_host(URL) :- 
+	    endsWith(URL,'.com');
+	    endsWith(URL,'.edu').
 
 % Get all link labels from a DOM structure
 get_link_labels(DOM, HREF):-
