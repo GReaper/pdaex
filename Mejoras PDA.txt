@@ -1,0 +1,8 @@
+- Filtro de links validos con nombres de dominio más usuales
+- Mejorar la toma del charset manualmente (buscando en el DOM)
+- Mejorar con HTTPS
+- Mostrar todos los 'meta' procesando manualmente
+- Búsqueda de patrones en URLs con profundidad (nueva funcionalidad): startswith, endswith, contains, depth
+- Simplificar grafo a solo nombre de host
+- Usar nuevo término para metas: meta(type,data)
+- Trabajar sobre listas en los enlaces (no usar de nuevo XPath)
