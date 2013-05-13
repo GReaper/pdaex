@@ -161,7 +161,7 @@ get_all_content_meta([M|MetaTags], [X:Y|CMetas]) :-
 	xpath(M,//meta(@content),Y),
 	get_all_content_meta(MetaTags,CMetas).
 get_all_content_meta([_|MetaTags], CMetas) :-
-		     get_all_content_meta(MetaTags, CMetas).
+	get_all_content_meta(MetaTags, CMetas).
 
 %----------------%
 % HTML FUNCTIONS %
