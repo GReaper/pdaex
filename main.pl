@@ -133,7 +133,7 @@ get_html_charset([_|MetaTags],Charset) :-
 % Get all content metatags. They will be grouped into pairs with the
 % form ContentType-ContentValue
 get_all_content_meta([], []).
-get_all_content_meta([M|MetaTags], [X-Y|CMetas]) :-
+get_all_content_meta([M|MetaTags], [X:Y|CMetas]) :-
 	xpath(M,//meta(@name),X),!,
 	xpath(M,//meta(@content),Y),
 	get_all_content_meta(MetaTags,CMetas).
