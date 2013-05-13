@@ -7,6 +7,7 @@ PENDIENTES:
 - Trabajar sobre listas en los enlaces (no usar de nuevo XPath)
 - En función de cómo quede el grafo con muchos enlaces, realizar un IF y
 volcar el grafo a HTML de otra forma (según el número de vértices)
+NOTA: una posible forma es volcar el S-grafo de forma plana usando anclas en el propio documento HTML
 - Comprobar si es necesario agregar la URL como vértice si ya se añade
 en aristas
 
