@@ -41,7 +41,7 @@ is_valid_link(URL) :- startsWithHttp(URL),
 	).
 
 % Test if an URL is a valid HTML content output
-is_valid_output(URL) :- 
+is_valid_output(URL) :-
 	    endsWith(URL,'/');
 	    endsWith(URL,'.html');
 	    endsWith(URL,'.htm');
@@ -58,7 +58,7 @@ is_valid_output(URL) :-
 
 % Test if an URL is a valid domain name (without index.xxxx)
 % We will only take into account most commonly used host endings
-is_valid_host(URL) :- 
+is_valid_host(URL) :-
 	    endsWith(URL,'.com');
 	    endsWith(URL,'.edu').
 
@@ -77,11 +77,15 @@ get_link_list(DOM, List) :-
 	      (xpath(DOM,//a(@href),L),
 	      (startsWithHttp(L);startsWithHttps(L))),
 	      List),!.
+% Clause needed to avoid JS retrieving problems. If it is not set,
+% sometimes false can be returned and stop execution
 get_link_list(_,[]).
 
 % Get only valid links
 get_valid_links(DOM, List) :-
 	setof(L, (xpath(DOM,//a(@href),L),is_valid_link(L)), List),!.
+% Clause needed to avoid JS retrieving problems. If it is not set,
+% sometimes false can be returned and stop execution
 get_valid_links(_,[]).
 
 
@@ -127,6 +131,8 @@ uses_js(DOM) :- xpath(DOM,//script(@type='text/javascript'),_).
 % Get all meta elems in the given HTML (list form)
 get_all_meta_list(DOM, List) :-
 	setof(L, xpath(DOM,//meta,L), List),!.
+% Clause needed to avoid JS retrieving problems. If it is not set,
+% sometimes false can be returned and stop execution
 get_all_meta_list(_, []).
 
 % Get charset metatag
