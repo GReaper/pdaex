@@ -225,10 +225,11 @@ load_html(URL, DOM) :-
 					),
 					close(In))),
 	 % Exception
-	    E,
+	    _,%E,
 	 % Catch section. Don't dump exception later. Give an
 	 % error info message instead
-	    (   writeln(E) , fail )
+	    (   % writeln(E) ,
+		fail )
 	    ).
 
 % This predicate is needed in order to avoid some html reading errors
