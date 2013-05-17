@@ -182,7 +182,9 @@ get_all_content_meta([_|MetaTags], CMetas) :-
 % Load an HTML given its URL. At the moment only HTTP connections work properly.
 % SSL support will be added later (if possible).
 load_html(URL, DOM) :-
-	setup_call_cleanup(http_open(URL, In,
+	catch(
+	% Try section
+	    (	setup_call_cleanup(http_open(URL, In,
 				    [ timeout(60)
 				    ]),
 					( dtd(html, DTD),
@@ -196,7 +198,13 @@ load_html(URL, DOM) :-
 						syntax_errors(quiet)
 					])
 					),
-					close(In)).
+					close(In))),
+	 % Exception
+	    E,
+	 % Catch section. Don't dump exception later. Give an
+	 % error info message instead
+	    (   writeln(E) )
+	    ).
 
 % This predicate creates an HTML output document and dumps
 % all retrieved data
