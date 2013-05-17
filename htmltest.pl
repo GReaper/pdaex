@@ -6,7 +6,7 @@ html_create_document(Title,L) :-
 	print_html(Stream,Tokens),
 	close(Stream).
 
-html_structure(Title,L) --> 
+html_structure(Title,L) -->
 		page([title([Title])],
 			[ h2(align(center),
                   [Title]),
@@ -19,14 +19,14 @@ html_structure(Title,L) -->
                      |\create_rows(L)
                      ])
              ]).
-			 
+
 create_rows([]) -->
         [].
 create_rows([X|Xs]) -->
         html([ tr([ td(X)
                   ])
              ]),
-        apropos_rows(Xs).
+        create_rows(Xs).
 
 html_apropos(Kwd) :-
         findall(Pred, apropos_predicate(Kwd, Pred), Matches),
@@ -87,3 +87,74 @@ apropos_predicate(Pattern, pred(Name, Arity, Summary)) :-
         ->  true
         ;   '$apropos_match'(Pattern, Summary)
         ).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
