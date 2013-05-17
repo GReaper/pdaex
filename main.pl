@@ -61,7 +61,18 @@ is_valid_output(URL) :-
 % We will only take into account most commonly used host endings
 is_valid_host(URL) :-
 	    endsWith(URL,'.com');
-	    endsWith(URL,'.edu').
+	    endsWith(URL,'.edu');
+	    endsWith(URL,'.aero');
+	    endsWith(URL,'.asia');
+	    endsWith(URL,'.biz');
+	    endsWith(URL,'.cat');
+	    endsWith(URL,'.coop');
+	    endsWith(URL,'.info');
+	    endsWith(URL,'.int');
+	    endsWith(URL,'.jobs');
+	    endsWith(URL,'.mobi');
+	    endsWith(URL,'.museum')
+	    .
 
 % Get all link labels from a DOM structure
 get_link_labels(DOM, HREF):-
