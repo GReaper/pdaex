@@ -1,6 +1,7 @@
 :- use_module(library(http/http_open)).
 :- use_module(library(xpath)).
 :- use_module(library(url)).
+:- use_module(library(http/html_write)).
 
 %------------------%
 % STRING FUNCTIONS %
@@ -186,6 +187,54 @@ load_html(URL, DOM) :-
 					),
 					close(In)).
 
+% This predicate creates an HTML output document and dumps
+% all retrieved data
+html_create_document(URI,Title,Styles,Js,Metas) :-
+	phrase(html_structure(Title,Styles,Js,Metas), Tokens),
+	open(URI, write, Stream),
+	print_html(Stream,Tokens),
+	close(Stream).
+
+% Predicate to generate the HTML structure to be dumped
+html_structure(Title,Styles,Js,Metas) -->
+		page([title([Title])],
+			[ h2(align(center),
+                  [Title]),
+               table([ align(center),
+                       border(1),
+                       width('80%')
+                     ],
+                     [ tr([ th('Style tags')
+                          ])
+                     |\create_rows(Styles)
+                     ]),
+               table([ align(center),
+                       border(1),
+                       width('80%')
+                     ],
+                     [ tr([ th('JS tags')
+                          ])
+                     |\create_rows(Js)
+                     ]),
+               table([ align(center),
+                       border(1),
+                       width('80%')
+                     ],
+                     [ tr([ th('Meta tags')
+                          ])
+                     |\create_rows(Metas)
+                     ])
+             ]).
+
+% Create all the HTML rows structure based on the given tags list
+create_rows([]) -->
+        [].
+create_rows([X|Xs]) -->
+        html([ tr([ td(X)
+                  ])
+             ]),
+        create_rows(Xs).
+
 %------------------%
 % GRAPHS FUNCTIONS %
 %------------------%
@@ -235,18 +284,18 @@ process_url(URL, 0, OutGraph) :-
 	% DEBUG: write retrieved data
 	write('All links ->'),writeln(LinkList),nl,
 	write('Valid links ->'),writeln(ValidLinks),nl,
-	write('Css links ->'),writeln(CssLinks),nl,
-	write('Javascript links ->'),writeln(JSLinks),nl,
-	write('Content meta tags ->'),writeln(CMetas),nl,
+	%write('Css links ->'),writeln(CssLinks),nl,
+	%write('Javascript links ->'),writeln(JSLinks),nl,
+	%write('Content meta tags ->'),writeln(CMetas),nl,
 	write('Charset ->'),writeln(Charset),
 	% Dump graph
 	write('Graph ->'),writeln(OutGraph),
-	% File dumping test
-	open('test2.txt',write,Stream),
-	write(Stream,'URL -> '),write(Stream,URL),nl(Stream),
-	write(Stream,'Graph -> '),write(Stream,OutGraph),nl(Stream),
-	nl(Stream),
-	close(Stream),
+	% HTML output dumping
+	name(URL,Charlist),
+	append(Charlist,".html",URIList),
+	name(URI,URIList),
+	write('URI ->'), writeln(URI),
+	html_create_document(URI,'Test html',CssLinks,JSLinks,CMetas),
 	% Don't try any predicate more
 	!.
 
