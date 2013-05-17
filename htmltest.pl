@@ -1,12 +1,12 @@
 :- use_module(library(http/html_write)).
 
-html_create_document(Title,L) :-
-	phrase(html_structure(Title,L), Tokens),
-	open('index.html', write, Stream),
+html_create_document(URI,Title,Styles,Js,Metas) :-
+	phrase(html_structure(Title,Styles,Js,Metas), Tokens),
+	open(URI, write, Stream),
 	print_html(Stream,Tokens),
 	close(Stream).
 
-html_structure(Title,L) -->
+html_structure(Title,Styles,Js,Metas) -->
 		page([title([Title])],
 			[ h2(align(center),
                   [Title]),
@@ -14,11 +14,35 @@ html_structure(Title,L) -->
                        border(1),
                        width('80%')
                      ],
-                     [ tr([ th(Title)
+                     [ tr([ th('Style tags')
                           ])
-                     |\create_rows(L)
+                     |\print_styles(Styles)
+                     ]),
+               table([ align(center),
+                       border(1),
+                       width('80%')
+                     ],
+                     [ tr([ th('JS tags')
+                          ])
+                     |\print_styles(Js)
+                     ]),
+               table([ align(center),
+                       border(1),
+                       width('80%')
+                     ],
+                     [ tr([ th('Meta tags')
+                          ])
+                     |\print_styles(Metas)
                      ])
              ]).
+
+print_styles([]) -->
+        [].
+print_styles([X|Xs]) -->
+        html([ tr([ td(X)
+                  ])
+             ]),
+        print_styles(Xs).
 
 create_rows([]) -->
         [].
@@ -88,7 +112,8 @@ apropos_predicate(Pattern, pred(Name, Arity, Summary)) :-
         ;   '$apropos_match'(Pattern, Summary)
         ).
 
-
+% Test predicates
+test1 :- html_create_document('index.html','Test doc',['s1',s2,'s3'],['js1'],[m1:'m11','m2']).
 
 
 
