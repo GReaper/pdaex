@@ -109,11 +109,17 @@ get_link_list(DOM, List) :-
 get_link_list(_,[]).
 
 % Get only valid links
-get_valid_links(DOM, List) :-
-	setof(L, (xpath(DOM,//a(@href),L),is_valid_link(L)), List),!.
+get_valid_links([],_).
+get_valid_links([X|Xs],[X|Ys]) :-
+	is_valid_link(X),!,
+	get_valid_links(Xs,Ys).
+get_valid_links([_|Xs],Ys) :-
+	get_valid_links(Xs,Ys).
+%get_valid_links(DOM, List) :-
+%	setof(L, (xpath(DOM,//a(@href),L),is_valid_link(L)), List),!.
 % Clause needed to avoid JS retrieving problems. If it is not set,
 % sometimes false can be returned and stop execution
-get_valid_links(_,[]).
+%get_valid_links(_,[]).
 
 
 %---------------%
@@ -391,7 +397,7 @@ process_main_url(URL, N, OutGraph) :-
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
-	get_valid_links(DOM, ValidLinks),
+	get_valid_links(LinkList, ValidLinks),
 	% Get stylesheet links
 	get_all_style_list(DOM, CssLinks),
 	% Get javascript links
@@ -480,7 +486,7 @@ process_url(URL, N, OutGraph,Folder) :-
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
-	get_valid_links(DOM, ValidLinks),
+	get_valid_links(LinkList, ValidLinks),
 	% Get stylesheet links
 	get_all_style_list(DOM, CssLinks),
 	% Get javascript links
