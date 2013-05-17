@@ -28,6 +28,21 @@ get_host([],_) :- fail.
 get_host([host(H) | _],H) :- !.
 get_host([_ | Ls], H) :- get_host(Ls, H).
 
+% DCG to replace characters
+eos([], []).
+
+replace(_, _) --> call(eos), !.
+replace(Find, Replace), Replace -->
+        Find,
+        !,
+        replace(Find, Replace).
+replace(Find, Replace), [C] -->
+        [C],
+        replace(Find, Replace).
+
+substitute(Find, Replace, Request, Result) :-
+        phrase(replace(Find, Replace), Request, Result).
+
 %-----------------%
 % LINKS FUNCTIONS %
 %-----------------%
@@ -208,17 +223,27 @@ load_html(URL, DOM) :-
 
 % This predicate creates an HTML output document and dumps
 % all retrieved data
-html_create_document(URI,Title,Styles,Js,Metas) :-
-	phrase(html_structure(Title,Styles,Js,Metas), Tokens),
+html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph) :-
+	phrase(html_structure(Title,Charset,Styles,Js,Metas,Graph), Tokens),
 	open(URI, write, Stream),
 	print_html(Stream,Tokens),
 	close(Stream).
 
 % Predicate to generate the HTML structure to be dumped
-html_structure(Title,Styles,Js,Metas) -->
+html_structure(Title,Charset,Styles,Js,Metas,Graph) -->
 		page([title([Title])],
 			[ h2(align(center),
-                  [Title]),
+                        [Title]
+		       ),
+	       table([ align(center),
+                       border(1),
+                       width('80%')
+                     ],
+                     [ tr([ th('Charset')
+                          ]),
+		       tr([ td(Charset)
+                          ])
+                     ]),
                table([ align(center),
                        border(1),
                        width('80%')
@@ -239,9 +264,24 @@ html_structure(Title,Styles,Js,Metas) -->
                        border(1),
                        width('80%')
                      ],
-                     [ tr([ th('Meta tags')
+                     [ tr([ th([colspan(2)],
+			       'Meta tags')
+                          ]),
+		       tr([ th([width('50%')],
+			       'Type'),
+			    th([width('50%')],
+			       'Content')
                           ])
-                     |\create_rows(Metas)
+                     |\create_meta_rows(Metas)
+                     ]),
+	        table([ align(center),
+                       border(1),
+                       width('80%')
+                     ],
+                     [ tr([ th('Graph')
+                          ]),
+		       tr([ td(Graph)
+                          ])
                      ])
              ]).
 
@@ -253,6 +293,17 @@ create_rows([X|Xs]) -->
                   ])
              ]),
         create_rows(Xs).
+
+% Predicate for meta tags rows
+create_meta_rows([]) -->
+        [].
+create_meta_rows([T1:C1|Xs]) -->
+        html([ tr([ td(T1)
+                   ,
+		    td(C1)]
+		  )
+             ]),
+        create_meta_rows(Xs).
 
 %------------------%
 % GRAPHS FUNCTIONS %
@@ -274,14 +325,19 @@ generate_graph(BaseUrl,[L|Ls],Graph) :-
 	extract_host_name(L,LHost),
 	add_edges(G2,[Host-LHost],Graph).
 
-%----------------%
-%  MAIN PROGRAM  %
-%----------------%
+%---------------------------%
+%  DATA RETRIEVING CRAWLER  %
+%---------------------------%
 
-% Process URL with no depth (only base URL)
-% In this case we only take all HTML info without
-% making the depth graph (only basic one)
-process_url(URL, 0, OutGraph) :-
+% Predicate to process the base URL. We need this to apply some
+% changes to main URL and create the data dump folder
+process_main_url(URL, 0, OutGraph) :-
+	% Create results folder
+	get_time(TimeStamp),
+	name(TimeStamp,Folder),
+	make_directory(Folder),	
+	% Write process info
+	write('Processing: '),writeln(URL),
 	% Get URL HTML as DOM structure
 	load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
@@ -301,26 +357,29 @@ process_url(URL, 0, OutGraph) :-
 	% Generate basic graph
 	generate_graph(URL, LinkList, OutGraph),
 	% DEBUG: write retrieved data
-	write('All links ->'),writeln(LinkList),nl,
-	write('Valid links ->'),writeln(ValidLinks),nl,
+	%write('All links ->'),writeln(LinkList),nl,
+	%write('Valid links ->'),writeln(ValidLinks),nl,
 	%write('Css links ->'),writeln(CssLinks),nl,
 	%write('Javascript links ->'),writeln(JSLinks),nl,
 	%write('Content meta tags ->'),writeln(CMetas),nl,
-	write('Charset ->'),writeln(Charset),
+	%write('Charset ->'),writeln(Charset),
 	% Dump graph
-	write('Graph ->'),writeln(OutGraph),
+	%write('Graph ->'),writeln(OutGraph),
 	% HTML output dumping
-	name(URL,Charlist),
-	append(Charlist,".html",URIList),
-	name(URI,URIList),
-	write('URI ->'), writeln(URI),
-	html_create_document(URI,'Test html',CssLinks,JSLinks,CMetas),
+        append(Folder,"/",Directory),
+	append(Directory,"index.html",DirectoryURI),
+	name(URI,DirectoryURI),
+	html_create_document(URI,'Test html',Charset,CssLinks,JSLinks,CMetas,OutGraph),
 	% Don't try any predicate more
 	!.
 
-% Process and URL with depth > 1. In this case we must build
-% the links graph and explore the new websites
-process_url(URL, N, OutGraph) :-
+process_main_url(URL, N, OutGraph) :-
+	% Create results folder
+	get_time(TimeStamp),
+	name(TimeStamp,Folder),
+	make_directory(Folder),	
+	% Write process info
+	write('Processing: '),writeln(URL),
         % Get URL HTML as DOM structure
 	load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
@@ -340,46 +399,136 @@ process_url(URL, N, OutGraph) :-
 	% Generate basic graph
 	generate_graph(URL, LinkList, Graph),
 	% DEBUG: write retrieved data
-	write('All links ->'),writeln(LinkList),nl,
-	write('Valid links ->'),writeln(ValidLinks),nl,
-	write('Css links ->'),writeln(CssLinks),nl,
-	write('Javascript links ->'),writeln(JSLinks),nl,
-	write('Content meta tags ->'),writeln(CMetas),nl,
-	write('Charset ->'),writeln(Charset),
+	%write('All links ->'),writeln(LinkList),nl,
+	%write('Valid links ->'),writeln(ValidLinks),nl,
+	%write('Css links ->'),writeln(CssLinks),nl,
+	%write('Javascript links ->'),writeln(JSLinks),nl,
+	%write('Content meta tags ->'),writeln(CMetas),nl,
+	%write('Charset ->'),writeln(Charset),
 	% Reduce exploring depth
 	M is N-1,
 	% Evaluate other levels
-	evaluate_level(ValidLinks, M, Graph, OutGraph),
+	evaluate_level(ValidLinks, M, Graph, OutGraph, Folder),
 	% Dump graph
-	write('Graph ->'),writeln(OutGraph),
-	% File dumping test
-	open('test1.txt',write,Stream),
-	write(Stream,'URL -> '),write(Stream,URL),nl(Stream),
-	write(Stream,'Graph -> '),write(Stream,OutGraph),nl(Stream),
-	vertices(OutGraph,V),
-	write(Stream,'Aristas -> '),write(Stream,V),nl(Stream),
-	nl(Stream),
-	close(Stream),
+	%write('Graph ->'),writeln(OutGraph),
+	% HTML output dumping
+        append(Folder,"/",Directory),
+	append(Directory,"index.html",DirectoryURI),
+	name(URI,DirectoryURI),
+	html_create_document(URI,'Test html',Charset,CssLinks,JSLinks,CMetas,OutGraph),
+	% Don't try any predicate more
+	!.
+
+% Process URL with no depth (only base URL)
+% In this case we only take all HTML info without
+% making the depth graph (only basic one)
+process_url(URL, 0, OutGraph, Folder) :-
+	% Write process info
+	write('Processing: '),writeln(URL),
+	% Get URL HTML as DOM structure
+	load_html(URL, DOM),
+	% Get all link labels from DOM (list form)
+	get_link_list(DOM, LinkList),
+	% Get only valid links to process (HTTP)
+	get_valid_links(DOM, ValidLinks),
+	% Get stylesheet links
+	get_all_style_list(DOM, CssLinks),
+	% Get javascript links
+	get_all_js_list(DOM, JSLinks),
+	% Get all meta elems
+	get_all_meta_list(DOM, MetaElms),
+	% Get HTML charset
+	get_html_charset(MetaElms, Charset),
+	% Get content metas
+	get_all_content_meta(MetaElms, CMetas),
+	% Generate basic graph
+	generate_graph(URL, LinkList, OutGraph),
+	% DEBUG: write retrieved data
+	%write('All links ->'),writeln(LinkList),nl,
+	%write('Valid links ->'),writeln(ValidLinks),nl,
+	%write('Css links ->'),writeln(CssLinks),nl,
+	%write('Javascript links ->'),writeln(JSLinks),nl,
+	%write('Content meta tags ->'),writeln(CMetas),nl,
+	%write('Charset ->'),writeln(Charset),
+	% Dump graph
+	%write('Graph ->'),writeln(OutGraph),
+	% HTML output dumping
+	name(URL,Charlist),
+	append(Charlist,".html",URIAppend),
+	substitute(":","_",URIAppend,ReplaceURIList),
+	substitute("/","_",ReplaceURIList,URITransform),
+        append(Folder,"/",Directory),
+	append(Directory,URITransform,DirectoryURI),
+	name(URI,DirectoryURI),
+	html_create_document(URI,'Test html',Charset,CssLinks,JSLinks,CMetas,OutGraph),
+	% Don't try any predicate more
+	!.
+
+% Process and URL with depth > 1. In this case we must build
+% the links graph and explore the new websites
+process_url(URL, N, OutGraph,Folder) :-
+	% Write process info
+	write('Processing: '),writeln(URL),
+        % Get URL HTML as DOM structure
+	load_html(URL, DOM),
+	% Get all link labels from DOM (list form)
+	get_link_list(DOM, LinkList),
+	% Get only valid links to process (HTTP)
+	get_valid_links(DOM, ValidLinks),
+	% Get stylesheet links
+	get_all_style_list(DOM, CssLinks),
+	% Get javascript links
+	get_all_js_list(DOM, JSLinks),
+	% Get all meta elems
+	get_all_meta_list(DOM, MetaElms),
+	% Get HTML charset
+	get_html_charset(MetaElms, Charset),
+	% Get content metas
+	get_all_content_meta(MetaElms, CMetas),
+	% Generate basic graph
+	generate_graph(URL, LinkList, Graph),
+	% DEBUG: write retrieved data
+	%write('All links ->'),writeln(LinkList),nl,
+	%write('Valid links ->'),writeln(ValidLinks),nl,
+	%write('Css links ->'),writeln(CssLinks),nl,
+	%write('Javascript links ->'),writeln(JSLinks),nl,
+	%write('Content meta tags ->'),writeln(CMetas),nl,
+	%write('Charset ->'),writeln(Charset),
+	% Reduce exploring depth
+	M is N-1,
+	% Evaluate other levels
+	evaluate_level(ValidLinks, M, Graph, OutGraph, Folder),
+	% Dump graph
+	%write('Graph ->'),writeln(OutGraph),
+	% HTML output dumping
+	name(URL,Charlist),
+	append(Charlist,".html",URIAppend),
+	substitute(":","_",URIAppend,ReplaceURIList),
+	substitute("/","_",ReplaceURIList,URITransform),
+        append(Folder,"/",Directory),
+	append(Directory,URITransform,DirectoryURI),
+	name(URI,DirectoryURI),
+	html_create_document(URI,'Test html',Charset,CssLinks,JSLinks,CMetas,OutGraph),
 	% Don't try any predicate more
 	!.
 
 % Evaluate remaining levels. We must take care of timeout or redirects
 % to HTTPS, so we will take all exceptions and avoid processing the
 % associated webs
-evaluate_level([], _ , Graph, Graph).
-evaluate_level([L|Ls], N, Graph, OutGraph) :-
+evaluate_level([], _ , Graph, Graph, _).
+evaluate_level([L|Ls], N, Graph, OutGraph, Folder) :-
 	catch(
 	      % Try section
 	      (
-	          process_url(L, N, LevelGraph),
+	          process_url(L, N, LevelGraph, Folder),
 	          % Graph union
 	          ugraph_union(Graph, LevelGraph, OGraph1),
-		  evaluate_level(Ls, N, OGraph1, OutGraph)
+		  evaluate_level(Ls, N, OGraph1, OutGraph, Folder)
 	      ),
 	      % Exception taking
 	      _,
 	      % Catch section
-	      (	  evaluate_level(Ls, N, Graph, OutGraph))
+	      (	  evaluate_level(Ls, N, Graph, OutGraph, Folder))
 	      ).
 
 %----------------------%
@@ -387,7 +536,7 @@ evaluate_level([L|Ls], N, Graph, OutGraph) :-
 %----------------------%
 
 % Test predicate with FDI URL and no exploring depth
-test1 :- process_url('http://www.fdi.ucm.es/',0,_).
+test1 :- process_main_url('http://www.fdi.ucm.es/',0,_).
 
 % Test predicate to check for links list composing
 test2(L,C) :- load_html('http://www.mitmiapp.com',DOM),
@@ -403,20 +552,20 @@ test4 :- load_html('http://www.mitmiapp.com',DOM),
 	uses_js(DOM).
 
 % Test predicate with Mitmi URL and exploring depth
-test5 :- process_url('http://www.mitmiapp.com/',1,OG)
+test5 :- process_main_url('http://www.mitmiapp.com/',1,OG)
 	 ,nl,nl,write('OG -> '),writeln(OG).
 
 % Test predicate with Fdi URL and exploring depth
-test6 :- process_url('http://www.fdi.ucm.es/',1,OG)
+test6 :- process_main_url('http://www.fdi.ucm.es/',1,OG)
 	 ,nl,nl,write('OG -> '),writeln(OG).
 
 % Test predicate with Fdi URL and optional exploring depth
-test7(D) :- process_url('http://www.fdi.ucm.es/',D,OG)
+test7(D) :- process_main_url('http://www.fdi.ucm.es/',D,OG)
 	 ,nl,nl,write('OG -> '),writeln(OG).
 
 % This predicate fails, it should be debugged!!!
-test8 :- process_url('http://www.fdi.ucm.es/',2,OG)
+test8 :- process_main_url('http://www.fdi.ucm.es/',2,OG)
 	 ,nl,nl,write('OG -> '),writeln(OG).
 
 % General predicate test
-genTest(URL, Depth) :- process_url(URL, Depth, _).
+genTest(URL, Depth) :- process_main_url(URL, Depth, _).
