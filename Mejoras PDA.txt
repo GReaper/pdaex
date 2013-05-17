@@ -4,7 +4,6 @@ PENDIENTES:
 - Mejorar con HTTPS
 - Mostrar todos los 'meta' procesando manualmente
 - Búsqueda de patrones en URLs con profundidad (nueva funcionalidad): startswith, endswith, contains, depth
-- Trabajar sobre listas en los enlaces (no usar de nuevo XPath)
 - En función de cómo quede el grafo con muchos enlaces, realizar un IF y
 volcar el grafo a HTML de otra forma (según el número de vértices)
 NOTA: una posible forma es volcar el S-grafo de forma plana usando anclas en el propio documento HTML
@@ -13,11 +12,11 @@ en aristas
 - Convertir los css y js en URLs visualizables (enlazables en HTML) usando la librería de URLs
 
 OTRAS:
-- Usar nuevo término para metas: meta(type,data)
-Ya se ha cambiado el formato para que no de problemas. En caso de ocurrir alguno, se puede retomar esta mejora.
 
 COMPLETADAS:
 - Creada exploración por niveles
 - Generado grafo de profundidad
 - Simplificar grafo a solo nombre de host
 - Mejorar documentos a explorar con tipos de salida correctos (html,xml,etc)
+- Trabajar sobre listas en los enlaces (no usar de nuevo XPath)
+- Usar nuevo término para metas: meta(type,data)

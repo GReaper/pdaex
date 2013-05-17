@@ -231,6 +231,12 @@ load_html(URL, DOM) :-
 	    (   writeln(E) , fail )
 	    ).
 
+% This predicate is needed in order to avoid some html reading errors
+% and continue executing the crawler
+cleanly_load_html(URL,DOM) :-
+	load_html(URL,DOM),!.
+cleanly_load_html(_,[]).
+
 % This predicate creates an HTML output document and dumps
 % all retrieved data
 html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph) :-
@@ -344,6 +350,7 @@ generate_graph(BaseUrl,[L|Ls],Graph) :-
 % Predicate to process the base URL. We need this to apply some
 % changes to main URL and create the data dump folder
 process_main_url(URL, 0, OutGraph) :-
+	!,
 	% Create results folder
 	get_time(TimeStamp),
 	name(TimeStamp,Folder),
@@ -351,7 +358,7 @@ process_main_url(URL, 0, OutGraph) :-
 	% Write process info
 	write('Processing: '),writeln(URL),
 	% Get URL HTML as DOM structure
-	load_html(URL, DOM),
+	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
@@ -381,9 +388,7 @@ process_main_url(URL, 0, OutGraph) :-
         append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph),
-	% Don't try any predicate more
-	!.
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph).
 
 process_main_url(URL, N, OutGraph) :-
 	% Create results folder
@@ -393,7 +398,7 @@ process_main_url(URL, N, OutGraph) :-
 	% Write process info
 	write('Processing: '),writeln(URL),
         % Get URL HTML as DOM structure
-	load_html(URL, DOM),
+	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
@@ -427,18 +432,18 @@ process_main_url(URL, N, OutGraph) :-
         append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph),
-	% Don't try any predicate more
-	!.
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph).
 
 % Process URL with no depth (only base URL)
 % In this case we only take all HTML info without
 % making the depth graph (only basic one)
 process_url(URL, 0, OutGraph, Folder) :-
+	% Don't try more
+	!,
 	% Write process info
 	write('Processing: '),writeln(URL),
 	% Get URL HTML as DOM structure
-	load_html(URL, DOM),
+	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
@@ -472,9 +477,7 @@ process_url(URL, 0, OutGraph, Folder) :-
         append(Folder,"/",Directory),
 	append(Directory,URITransform,DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph),
-	% Don't try any predicate more
-	!.
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph).
 
 % Process and URL with depth > 1. In this case we must build
 % the links graph and explore the new websites
@@ -482,7 +485,7 @@ process_url(URL, N, OutGraph,Folder) :-
 	% Write process info
 	write('Processing: '),writeln(URL),
         % Get URL HTML as DOM structure
-	load_html(URL, DOM),
+	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
@@ -520,9 +523,7 @@ process_url(URL, N, OutGraph,Folder) :-
         append(Folder,"/",Directory),
 	append(Directory,URITransform,DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph),
-	% Don't try any predicate more
-	!.
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph).
 
 % Evaluate remaining levels. We must take care of timeout or redirects
 % to HTTPS, so we will take all exceptions and avoid processing the
@@ -551,16 +552,16 @@ evaluate_level([L|Ls], N, Graph, OutGraph, Folder) :-
 test1 :- process_main_url('http://www.fdi.ucm.es/',0,_).
 
 % Test predicate to check for links list composing
-test2(L,C) :- load_html('http://www.mitmiapp.com',DOM),
+test2(L,C) :- cleanly_load_html('http://www.mitmiapp.com',DOM),
 	get_link_list(DOM, L),
 	get_all_style_list(DOM, C).
 
 % Test whether an HTML has some style code
-test3 :- load_html('http://www.mitmiapp.com',DOM),
+test3 :- cleanly_load_html('http://www.mitmiapp.com',DOM),
 	uses_style(DOM).
 
 % Test whether an HTML has some JS code
-test4 :- load_html('http://www.mitmiapp.com',DOM),
+test4 :- cleanly_load_html('http://www.mitmiapp.com',DOM),
 	uses_js(DOM).
 
 % Test predicate with Mitmi URL and exploring depth
@@ -578,6 +579,9 @@ test7(D) :- process_main_url('http://www.fdi.ucm.es/',D,OG)
 % This predicate fails, it should be debugged!!!
 test8 :- process_main_url('http://www.fdi.ucm.es/',2,OG)
 	 ,nl,nl,write('OG -> '),writeln(OG).
+
+% This predicate fails, it should be debugged!!!
+test9 :- process_main_url('http://www.philosophyofinformation.net/unesco/.html',0,_).
 
 % General predicate test
 genTest(URL, Depth) :- process_main_url(URL, Depth, _).
