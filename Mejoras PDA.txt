@@ -10,6 +10,7 @@ NOTA: una posible forma es volcar el S-grafo de forma plana usando anclas en el 
 - Comprobar si es necesario agregar la URL como vértice si ya se añade
 en aristas
 - Convertir los css y js en URLs visualizables (enlazables en HTML) usando la librería de URLs
+- Cambiar nombre de directorio y mostrar la fecha y hora actual
 
 OTRAS:
 
