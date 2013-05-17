@@ -187,6 +187,10 @@ get_all_content_meta([M|MetaTags], [X:Y|CMetas]) :-
 	xpath(M,//meta(@name),X),!,
 	xpath(M,//meta(@content),Y),
 	get_all_content_meta(MetaTags,CMetas).
+get_all_content_meta([M|MetaTags], [X:Y|CMetas]) :-
+	xpath(M,//meta(@'http-equiv'),X),!,
+	xpath(M,//meta(@content),Y),
+	get_all_content_meta(MetaTags,CMetas).
 get_all_content_meta([_|MetaTags], CMetas) :-
 	get_all_content_meta(MetaTags, CMetas).
 
@@ -232,7 +236,7 @@ html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph) :-
 % Predicate to generate the HTML structure to be dumped
 html_structure(Title,Charset,Styles,Js,Metas,Graph) -->
 		page([title([Title]),
-			meta(['http-equiv'('content-type'),content('type="text/html"; charset="utf-8"')])
+			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')])
 			],
 			[ h2(align(center),
                         [Title]
@@ -337,7 +341,7 @@ process_main_url(URL, 0, OutGraph) :-
 	% Create results folder
 	get_time(TimeStamp),
 	name(TimeStamp,Folder),
-	make_directory(Folder),	
+	make_directory(Folder),
 	% Write process info
 	write('Processing: '),writeln(URL),
 	% Get URL HTML as DOM structure
@@ -345,7 +349,7 @@ process_main_url(URL, 0, OutGraph) :-
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
-	get_valid_links(DOM, ValidLinks),
+	% get_valid_links(DOM, ValidLinks),
 	% Get stylesheet links
 	get_all_style_list(DOM, CssLinks),
 	% Get javascript links
@@ -379,7 +383,7 @@ process_main_url(URL, N, OutGraph) :-
 	% Create results folder
 	get_time(TimeStamp),
 	name(TimeStamp,Folder),
-	make_directory(Folder),	
+	make_directory(Folder),
 	% Write process info
 	write('Processing: '),writeln(URL),
         % Get URL HTML as DOM structure
@@ -432,7 +436,7 @@ process_url(URL, 0, OutGraph, Folder) :-
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
-	get_valid_links(DOM, ValidLinks),
+	% get_valid_links(DOM, ValidLinks),
 	% Get stylesheet links
 	get_all_style_list(DOM, CssLinks),
 	% Get javascript links
