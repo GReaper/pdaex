@@ -203,7 +203,7 @@ load_html(URL, DOM) :-
 	    E,
 	 % Catch section. Don't dump exception later. Give an
 	 % error info message instead
-	    (   writeln(E) )
+	    (   writeln(E) , fail )
 	    ).
 
 % This predicate creates an HTML output document and dumps
