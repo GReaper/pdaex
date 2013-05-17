@@ -231,7 +231,9 @@ html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph) :-
 
 % Predicate to generate the HTML structure to be dumped
 html_structure(Title,Charset,Styles,Js,Metas,Graph) -->
-		page([title([Title])],
+		page([title([Title]),
+			meta(['http-equiv'('content-type'),content('type="text/html"; charset="utf-8"')])
+			],
 			[ h2(align(center),
                         [Title]
 		       ),
@@ -369,7 +371,7 @@ process_main_url(URL, 0, OutGraph) :-
         append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,'Test html',Charset,CssLinks,JSLinks,CMetas,OutGraph),
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph),
 	% Don't try any predicate more
 	!.
 
@@ -415,7 +417,7 @@ process_main_url(URL, N, OutGraph) :-
         append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,'Test html',Charset,CssLinks,JSLinks,CMetas,OutGraph),
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph),
 	% Don't try any predicate more
 	!.
 
@@ -460,7 +462,7 @@ process_url(URL, 0, OutGraph, Folder) :-
         append(Folder,"/",Directory),
 	append(Directory,URITransform,DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,'Test html',Charset,CssLinks,JSLinks,CMetas,OutGraph),
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph),
 	% Don't try any predicate more
 	!.
 
@@ -508,7 +510,7 @@ process_url(URL, N, OutGraph,Folder) :-
         append(Folder,"/",Directory),
 	append(Directory,URITransform,DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,'Test html',Charset,CssLinks,JSLinks,CMetas,OutGraph),
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph),
 	% Don't try any predicate more
 	!.
 
