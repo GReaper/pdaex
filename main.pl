@@ -798,5 +798,8 @@ test8 :- process_main_url('http://www.fdi.ucm.es/',2,OG,CG)
 % This predicate fails, it should be debugged!!!
 test9 :- process_main_url('http://www.philosophyofinformation.net/unesco/.html',0,_,_).
 
+% Test predicate with Fdi URL and optional exploring depth
+test10(D) :- process_main_url('http://www.fdi.ucm.es/',D,_,_).
+
 % General predicate test
 genTest(URL, Depth) :- process_main_url(URL, Depth, _, _).
