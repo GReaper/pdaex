@@ -224,14 +224,14 @@ cleanly_load_html(_,[]).
 
 % This predicate creates an HTML output document and dumps
 % all retrieved data
-html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph) :-
-	phrase(html_structure(Title,Charset,Styles,Js,Metas,Graph), Tokens),
+html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) :-
+	phrase(html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph), Tokens),
 	open(URI, write, Stream),
 	print_html(Stream,Tokens),
 	close(Stream).
 
 % Predicate to generate the HTML structure to be dumped
-html_structure(Title,Charset,Styles,Js,Metas,Graph) -->
+html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
 		page([title([Title]),
 			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')]),
 			link([rel('stylesheet'),type('text/css'),href('css/main.css')])
@@ -282,9 +282,18 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph) -->
                        border(1),
                        width('80%')
                      ],
-                     [ tr([ th('Graph')
+                     [ tr([ th('Hosts graph')
                           ]),
 		       tr([ td(Graph)
+                          ])
+                     ]),
+	        table([ align(center),
+                       border(1),
+                       width('80%')
+                     ],
+                     [ tr([ th('Complete graph')
+                          ]),
+		       tr([ td(CompleteGraph)
                           ])
                      ])
              ]).
@@ -409,13 +418,19 @@ process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph).
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph).
 
 process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	% Create results folder
 	get_time(TimeStamp),
 	name(TimeStamp,Folder),
 	make_directory(Folder),
+	% Copy css file to results folder
+	append(Folder,"/css",CssDirectory),
+	make_directory(CssDirectory),
+	append(CssDirectory,"/main.css",CssFile),
+	name(CssFilePath, CssFile),
+	copy('crawler_css/main.css',CssFilePath),
 	% Write process info
 	write('Processing main ('),write(N),write('): '),writeln(URL),
     % Get URL HTML as DOM structure
@@ -458,7 +473,7 @@ process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph),
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
 	!.
 
 % Process URL with no depth (only base URL)
@@ -506,7 +521,7 @@ process_url(URL, 0, OutGraph, OutCompleteGraph, Folder, VisitedLinks, VisitedLin
     append(Folder,"/",Directory),
 	append(Directory,URITransform,DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph).
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph).
 
 % Process and URL with depth > 1. In this case we must build
 % the links graph and explore the new websites
@@ -556,7 +571,7 @@ process_url(URL, N, OutGraph, OutCompleteGraph, Folder, VisitedLinks, NewVisited
     append(Folder,"/",Directory),
 	append(Directory,URITransform,DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph),
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
 	!.
 
 % Evaluate remaining levels. We must take care of timeout or redirects
