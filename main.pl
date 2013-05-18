@@ -73,21 +73,10 @@ is_valid_output(URL) :-
 	    endsWith(URL,'.xml').
 
 % Test if an URL is a valid domain name (without index.xxxx)
-% We will only take into account most commonly used host endings
+% We will use the host name to validate the URL
 is_valid_host(URL) :-
-	    endsWith(URL,'.com');
-	    endsWith(URL,'.edu');
-	    endsWith(URL,'.aero');
-	    endsWith(URL,'.asia');
-	    endsWith(URL,'.biz');
-	    endsWith(URL,'.cat');
-	    endsWith(URL,'.coop');
-	    endsWith(URL,'.info');
-	    endsWith(URL,'.int');
-	    endsWith(URL,'.jobs');
-	    endsWith(URL,'.mobi');
-	    endsWith(URL,'.museum')
-	    .
+		extract_host_name(URL, Host),
+		endsWith(URL, Host).
 
 % Get all link labels from a DOM structure
 get_link_labels(DOM, HREF):-
@@ -468,7 +457,7 @@ copy(File1, File2) :-
 copy(_, _).
 
 % Predicate to create the ouput folder
-create_dump_folder(Folder) :-
+create_dump_folder(Folder, ContentFolder) :-
 	get_time(TimeStamp),
 	stamp_date_time(TimeStamp,LocalDate,local),
 	LocalDate = date(Y, M, D, H, Min, Sec, _, _, _),
@@ -488,8 +477,12 @@ create_dump_folder(Folder) :-
 	append(A8, "-", A9),
 	name(Sec, Seconds),
 	append(A9, Seconds, Folder),
-	make_directory(Folder),!.
-create_dump_folder(_) :- 
+	make_directory(Folder),
+	% Create folder to dump all secondary web data
+	append(Folder, "/other_data",ContentFolder),
+	make_directory(ContentFolder),
+	!.
+create_dump_folder(_, _) :- 
 	write('Error: cannot create the output folder. '),
 	writeln('Please, check you have got the right permissions.'),
 	fail.
@@ -548,7 +541,7 @@ generate_complete_graph(BaseUrl,[L|Ls],Graph) :-
 process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 	!,
 	% Create results folder
-	create_dump_folder(Folder),
+	create_dump_folder(Folder, _),
 	% Copy css file to results folder
 	generate_css_file(Folder),
 	% Write process info
@@ -591,9 +584,10 @@ process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 
 process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	% Create results folder
-	create_dump_folder(Folder),
+	create_dump_folder(Folder, ContentFolder),
 	% Copy css file to results folder
 	generate_css_file(Folder),	
+	generate_css_file(ContentFolder),	
 	% Write process info
 	write('Processing main ('),write(N),write('): '),writeln(URL),
     % Get URL HTML as DOM structure
@@ -628,7 +622,7 @@ process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	% Reduce exploring depth
 	M is N-1,
 	% Evaluate other levels
-	evaluate_level(ValidLinks, M, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks),
+	evaluate_level(ValidLinks, M, Graph, OutGraph, CompleteGraph, OutCompleteGraph, ContentFolder, VisitedLinks),
 	% Dump graph
 	%write('Graph ->'),writeln(OutGraph),
 	%write('Complete graph ->'),writeln(OutCompleteGraph),
