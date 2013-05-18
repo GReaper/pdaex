@@ -113,7 +113,8 @@ get_valid_links([],_,_).
 get_valid_links([X|Xs], VisitedLinks, [X|Ys]) :-
 	\+member(X, VisitedLinks),
 	is_valid_link(X),!,
-	get_valid_links(Xs, VisitedLinks, Ys).
+	append(VisitedLinks, [X], NewVisitedLinks),
+	get_valid_links(Xs, NewVisitedLinks, Ys).
 get_valid_links([_|Xs], VisitedLinks, Ys) :-
 	get_valid_links(Xs, VisitedLinks, Ys).
 %get_valid_links(DOM, List) :-
