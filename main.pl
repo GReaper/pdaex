@@ -279,15 +279,14 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                      ],
                      [ tr([ th('Hosts graph')
                           ])
-                     |\dump_complete_graph(Graph)
+                     |\dump_complete_graph(Graph, Graph)
                      ]),
 	        table([ align(center),
                        width('100%')
                      ],
                      [ tr([ th('Complete graph')
-                          ]),
-		       tr([ td(CompleteGraph)
                           ])
+                     |\dump_complete_graph(CompleteGraph, CompleteGraph)
                      ])
              ]).
 
@@ -336,31 +335,54 @@ create_meta_rows([T1:C1|Xs]) -->
         create_meta_rows(Xs).
 
 % Predicate to dump the complete graph in text form
-dump_complete_graph([]) -->
+dump_complete_graph([], _) -->
 		[].
-dump_complete_graph([Ver-Neigh|Xs]) -->
+% Do not write isolated nodes
+dump_complete_graph([_-[]|Xs], Graph) -->
+		!,
+		dump_complete_graph(Xs, Graph).
+dump_complete_graph([Ver-Neigh|Xs], Graph) -->
 		html([ tr([ 
-					th(Ver)
+					th(
+						a([name(Ver)],
+							Ver
+							)
+						)
 	               ])
 	          ]),!,
-		generate_link_neigh(Neigh),
-		dump_complete_graph(Xs).
+		generate_link_neigh(Neigh, Graph),
+		dump_complete_graph(Xs, Graph).
 % Continue dump althought one step fails
-dump_complete_graph([_|Xs]) -->
-		dump_complete_graph(Xs),!.
+dump_complete_graph([_|Xs], Graph) -->
+		dump_complete_graph(Xs, Graph),!.
 
 % Aux. predicate to dump every link neighbour
-generate_link_neigh([]) -->
+generate_link_neigh([], _) -->
 		[].
-generate_link_neigh([N|Xs]) -->
+generate_link_neigh([N|Xs], Graph) -->
+		% Generate anchor
+		{ 
+		name(N,L1),
+		append("#",L1,L2),
+		name(Anchor,L2)
+		},
 		html([ tr([ 
-					td(N)
-	               ])
-	          ]),!,
-		dump_complete_graph(Xs).
+					td(
+						a([href(Anchor)],
+							N
+							)
+					)
+	            ])
+	          ]),
+		!,
+		generate_link_neigh(Xs, Graph).
 % Continue dump althought one step fails
-generate_link_neigh([_|Xs]) -->
-		generate_link_neigh(Xs),!.
+generate_link_neigh([_|Xs], Graph) -->
+		generate_link_neigh(Xs, Graph),!.
+
+% Predicate to test if the given node will be on
+% the graph headers (used for anchors)
+is_headed_node([N-[]|_],N).
 
 %--------------------------%
 % FILES & FOLDER FUNCTIONS %
