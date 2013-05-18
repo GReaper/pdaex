@@ -318,6 +318,10 @@ create_meta_rows([T1:C1|Xs]) -->
              ]),
         create_meta_rows(Xs).
 
+%--------------------------%
+% FILES & FOLDER FUNCTIONS %
+%--------------------------%
+
 % Predicate to copy one file to another. It will be used to 
 % auto copy the CSS file to every output folder
 copy(File1, File2) :- 
@@ -329,6 +333,44 @@ copy(File1, File2) :-
 % Clause needed to avoid problems. If CSS is not copied the system
 % can continue running without problems.
 copy(_, _).
+
+% Predicate to create the ouput folder
+create_dump_folder(Folder) :-
+	get_time(TimeStamp),
+	stamp_date_time(TimeStamp,LocalDate,local),
+	LocalDate = date(Y, M, D, H, Min, Sec, _, _, _),
+	name(Y, Year),
+	append(Year, "-", A1),
+	name(M, Month),
+	append(A1, Month, A2),
+	append(A2, "-", A3),
+	name(D, Day),
+	append(A3, Day, A4),
+	append(A4, " ", A5),
+	name(H, Hour),
+	append(A5, Hour, A6),
+	append(A6, "-", A7),
+	name(Min, Minutes),
+	append(A7, Minutes, A8),
+	append(A8, "-", A9),
+	name(Sec, Seconds),
+	append(A9, Seconds, Folder),
+	make_directory(Folder),!.
+create_dump_folder(_) :- 
+	write('Error: cannot create the output folder. '),
+	writeln('Please, check you have got the right permissions.'),
+	fail.
+
+% Predicate to dump the CSS files to the ouput folder
+generate_css_file(Folder) :-
+	append(Folder,"/css",CssDirectory),
+	make_directory(CssDirectory),
+	append(CssDirectory,"/main.css",CssFile),
+	name(CssFilePath, CssFile),
+	copy('crawler_css/main.css',CssFilePath),!.
+generate_css_file(_) :- 
+	write('Warning: cannot create the css folder. '),
+	writeln('Please, check you have got the right permissions.').
 
 %------------------%
 % GRAPHS FUNCTIONS %
@@ -373,32 +415,9 @@ generate_complete_graph(BaseUrl,[L|Ls],Graph) :-
 process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 	!,
 	% Create results folder
-	get_time(TimeStamp),
-	stamp_date_time(TimeStamp,LocalDate,local),
-	LocalDate = date(Y, M, D, H, Min, Sec, _, _, _),
-	name(Y, Year),
-	append(Year, "-", A1),
-	name(M, Month),
-	append(A1, Month, A2),
-	append(A2, "-", A3),
-	name(D, Day),
-	append(A3, Day, A4),
-	append(A4, " ", A5),
-	name(H, Hour),
-	append(A5, Hour, A6),
-	append(A6, "-", A7),
-	name(Min, Minutes),
-	append(A7, Minutes, A8),
-	append(A8, "-", A9),
-	name(Sec, Seconds),
-	append(A9, Seconds, Folder),
-	make_directory(Folder),
+	create_dump_folder(Folder),
 	% Copy css file to results folder
-	append(Folder,"/css",CssDirectory),
-	make_directory(CssDirectory),
-	append(CssDirectory,"/main.css",CssFile),
-	name(CssFilePath, CssFile),
-	copy('crawler_css/main.css',CssFilePath),
+	generate_css_file(Folder),
 	% Write process info
 	write('Processing main (0): '),writeln(URL),
 	% Get URL HTML as DOM structure
@@ -439,32 +458,9 @@ process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 
 process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	% Create results folder
-	get_time(TimeStamp),
-	stamp_date_time(TimeStamp,LocalDate,local),
-	LocalDate = date(Y, M, D, H, Min, Sec, _, _, _),
-	name(Y, Year),
-	append(Year, "-", A1),
-	name(M, Month),
-	append(A1, Month, A2),
-	append(A2, "-", A3),
-	name(D, Day),
-	append(A3, Day, A4),
-	append(A4, " ", A5),
-	name(H, Hour),
-	append(A5, Hour, A6),
-	append(A6, "-", A7),
-	name(Min, Minutes),
-	append(A7, Minutes, A8),
-	append(A8, "-", A9),
-	name(Sec, Seconds),
-	append(A9, Seconds, Folder),
-	make_directory(Folder),
+	create_dump_folder(Folder),
 	% Copy css file to results folder
-	append(Folder,"/css",CssDirectory),
-	make_directory(CssDirectory),
-	append(CssDirectory,"/main.css",CssFile),
-	name(CssFilePath, CssFile),
-	copy('crawler_css/main.css',CssFilePath),
+	generate_css_file(Folder),	
 	% Write process info
 	write('Processing main ('),write(N),write('): '),writeln(URL),
     % Get URL HTML as DOM structure
