@@ -278,9 +278,8 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                        width('100%')
                      ],
                      [ tr([ th('Hosts graph')
-                          ]),
-		       tr([ td(Graph)
                           ])
+                     |\dump_complete_graph(Graph)
                      ]),
 	        table([ align(center),
                        width('100%')
@@ -319,7 +318,7 @@ create_linked_rows(BaseUrl, [X|Xs]) -->
              ]),!,
         create_linked_rows(BaseUrl, Xs).
 % Clause needed in case one of the links fail
-create_linked_rows([BaseUrl, X|Xs]) -->
+create_linked_rows(BaseUrl, [X|Xs]) -->
         html([ tr([ td(X)
                   ])
              ]),!,
@@ -335,6 +334,33 @@ create_meta_rows([T1:C1|Xs]) -->
 		  )
              ]),
         create_meta_rows(Xs).
+
+% Predicate to dump the complete graph in text form
+dump_complete_graph([]) -->
+		[].
+dump_complete_graph([Ver-Neigh|Xs]) -->
+		html([ tr([ 
+					th(Ver)
+	               ])
+	          ]),!,
+		generate_link_neigh(Neigh),
+		dump_complete_graph(Xs).
+% Continue dump althought one step fails
+dump_complete_graph([_|Xs]) -->
+		dump_complete_graph(Xs),!.
+
+% Aux. predicate to dump every link neighbour
+generate_link_neigh([]) -->
+		[].
+generate_link_neigh([N|Xs]) -->
+		html([ tr([ 
+					td(N)
+	               ])
+	          ]),!,
+		dump_complete_graph(Xs).
+% Continue dump althought one step fails
+generate_link_neigh([_|Xs]) -->
+		generate_link_neigh(Xs),!.
 
 %--------------------------%
 % FILES & FOLDER FUNCTIONS %

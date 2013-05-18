@@ -1,6 +1,5 @@
 PENDIENTES:
 - Filtro de links validos con nombres de dominio más usuales
-- Mejorar la toma del charset manualmente (buscando en el DOM)
 - Mejorar con HTTPS
 - Búsqueda de patrones en URLs con profundidad (nueva funcionalidad): startswith, endswith, contains, depth
 - En función de cómo quede el grafo con muchos enlaces, realizar un IF y
@@ -22,3 +21,4 @@ en aristas
 - Mostrar todos los 'meta' procesando manualmente (hecho usando http-equiv quoted)
 - Cambiar nombre de directorio y mostrar la fecha y hora actual
 - Convertir los css y js en URLs visualizables (enlazables en HTML) usando la librería de URLs
+- Mejorar la toma del charset manualmente (buscando en el DOM)
