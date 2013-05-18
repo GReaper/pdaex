@@ -7,7 +7,6 @@ PENDIENTES:
 volcar el grafo a HTML de otra forma (según el número de vértices)
 NOTA: una posible forma es volcar el S-grafo de forma plana usando anclas en el propio documento HTML
 - Convertir los css y js en URLs visualizables (enlazables en HTML) usando la librería de URLs
-- Cambiar nombre de directorio y mostrar la fecha y hora actual
 
 OTRAS:
 
@@ -22,3 +21,4 @@ COMPLETADAS:
 - Comprobar si es necesario agregar la URL como vértice si ya se añade
 en aristas
 - Mostrar todos los 'meta' procesando manualmente (hecho usando http-equiv quoted)
+- Cambiar nombre de directorio y mostrar la fecha y hora actual

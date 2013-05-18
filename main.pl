@@ -374,7 +374,24 @@ process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 	!,
 	% Create results folder
 	get_time(TimeStamp),
-	name(TimeStamp,Folder),
+	stamp_date_time(TimeStamp,LocalDate,local),
+	LocalDate = date(Y, M, D, H, Min, Sec, _, _, _),
+	name(Y, Year),
+	append(Year, "-", A1),
+	name(M, Month),
+	append(A1, Month, A2),
+	append(A2, "-", A3),
+	name(D, Day),
+	append(A3, Day, A4),
+	append(A4, " ", A5),
+	name(H, Hour),
+	append(A5, Hour, A6),
+	append(A6, "-", A7),
+	name(Min, Minutes),
+	append(A7, Minutes, A8),
+	append(A8, "-", A9),
+	name(Sec, Seconds),
+	append(A9, Seconds, Folder),
 	make_directory(Folder),
 	% Copy css file to results folder
 	append(Folder,"/css",CssDirectory),
@@ -423,7 +440,24 @@ process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	% Create results folder
 	get_time(TimeStamp),
-	name(TimeStamp,Folder),
+	stamp_date_time(TimeStamp,LocalDate,local),
+	LocalDate = date(Y, M, D, H, Min, Sec, _, _, _),
+	name(Y, Year),
+	append(Year, "-", A1),
+	name(M, Month),
+	append(A1, Month, A2),
+	append(A2, "-", A3),
+	name(D, Day),
+	append(A3, Day, A4),
+	append(A4, " ", A5),
+	name(H, Hour),
+	append(A5, Hour, A6),
+	append(A6, "-", A7),
+	name(Min, Minutes),
+	append(A7, Minutes, A8),
+	append(A8, "-", A9),
+	name(Sec, Seconds),
+	append(A9, Seconds, Folder),
 	make_directory(Folder),
 	% Copy css file to results folder
 	append(Folder,"/css",CssDirectory),
@@ -468,7 +502,7 @@ process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	evaluate_level(ValidLinks, M, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks),
 	% Dump graph
 	%write('Graph ->'),writeln(OutGraph),
-	write('Complete graph ->'),writeln(OutCompleteGraph),
+	%write('Complete graph ->'),writeln(OutCompleteGraph),
 	% HTML output dumping
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
@@ -628,8 +662,9 @@ test7(D) :- process_main_url('http://www.fdi.ucm.es/',D,OG,_)
 	 ,nl,nl,write('OG -> '),writeln(OG).
 
 % This predicate fails, it should be debugged!!!
-test8 :- process_main_url('http://www.fdi.ucm.es/',2,OG,_)
-	 ,nl,nl,write('OG -> '),writeln(OG).
+test8 :- process_main_url('http://www.fdi.ucm.es/',2,OG,CG)
+	 ,nl,nl,write('OG -> '),writeln(OG)
+	 ,nl,nl,write('CG -> '),writeln(CG).
 
 % This predicate fails, it should be debugged!!!
 test9 :- process_main_url('http://www.philosophyofinformation.net/unesco/.html',0,_,_).
