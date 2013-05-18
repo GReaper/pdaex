@@ -436,7 +436,8 @@ process_main_url(URL, N, OutGraph) :-
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph).
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph),
+	!.
 
 % Process URL with no depth (only base URL)
 % In this case we only take all HTML info without
@@ -529,7 +530,8 @@ process_url(URL, N, OutGraph, Folder, VisitedLinks, NewVisitedLinks) :-
     append(Folder,"/",Directory),
 	append(Directory,URITransform,DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph).
+	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph),
+	!.
 
 % Evaluate remaining levels. We must take care of timeout or redirects
 % to HTTPS, so we will take all exceptions and avoid processing the
