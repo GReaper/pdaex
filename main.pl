@@ -335,7 +335,7 @@ generate_graph(BaseUrl,[],Graph) :-
 	% Get host name (if possible)
 	extract_host_name(BaseUrl,Host),
 	% Set graph root (base url)
-	add_vertices([],[Host],Graph).
+	add_vertices([],[Host],Graph),!.
 generate_graph(BaseUrl,[L|Ls],Graph) :-
 	% Get host name (if possible)
 	extract_host_name(BaseUrl,Host),
