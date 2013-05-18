@@ -109,7 +109,7 @@ get_link_list(DOM, List) :-
 get_link_list(_,[]).
 
 % Get only valid links
-get_valid_links([],_,_).
+get_valid_links([],_,[]).
 get_valid_links([X|Xs], VisitedLinks, [X|Ys]) :-
 	\+member(X, VisitedLinks),
 	is_valid_link(X),!,
@@ -192,12 +192,12 @@ get_html_charset([_|MetaTags],Charset) :-
 % form ContentType-ContentValue
 get_all_content_meta([], []).
 get_all_content_meta([M|MetaTags], [X:Y|CMetas]) :-
-	xpath(M,//meta(@name),X),!,
-	xpath(M,//meta(@content),Y),
+	xpath(M,//meta(@name),X),
+	xpath(M,//meta(@content),Y),!,
 	get_all_content_meta(MetaTags,CMetas).
 get_all_content_meta([M|MetaTags], [X:Y|CMetas]) :-
-	xpath(M,//meta(@'http-equiv'),X),!,
-	xpath(M,//meta(@content),Y),
+	xpath(M,//meta(@'http-equiv'),X),
+	xpath(M,//meta(@content),Y),!,
 	get_all_content_meta(MetaTags,CMetas).
 get_all_content_meta([_|MetaTags], CMetas) :-
 	get_all_content_meta(MetaTags, CMetas).
