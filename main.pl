@@ -240,8 +240,7 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                         [Title]
 		       ),
 	       table([ align(center),
-                       border(1),
-                       width('80%')
+                       width('100%')
                      ],
                      [ tr([ th('Charset')
                           ]),
@@ -249,24 +248,21 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                           ])
                      ]),
                table([ align(center),
-                       border(1),
-                       width('80%')
+                       width('100%')
                      ],
                      [ tr([ th('Style tags')
                           ])
-                     |\create_rows(Styles)
+                     |\create_linked_rows(Title,Styles)
                      ]),
                table([ align(center),
-                       border(1),
-                       width('80%')
+                       width('100%')
                      ],
                      [ tr([ th('JS tags')
                           ])
-                     |\create_rows(Js)
+                     |\create_linked_rows(Title,Js)
                      ]),
                table([ align(center),
-                       border(1),
-                       width('80%')
+                       width('100%')
                      ],
                      [ tr([ th([colspan(2)],
 			       'Meta tags')
@@ -279,8 +275,7 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                      |\create_meta_rows(Metas)
                      ]),
 	        table([ align(center),
-                       border(1),
-                       width('80%')
+                       width('100%')
                      ],
                      [ tr([ th('Hosts graph')
                           ]),
@@ -288,8 +283,7 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                           ])
                      ]),
 	        table([ align(center),
-                       border(1),
-                       width('80%')
+                       width('100%')
                      ],
                      [ tr([ th('Complete graph')
                           ]),
@@ -306,6 +300,30 @@ create_rows([X|Xs]) -->
                   ])
              ]),
         create_rows(Xs).
+
+% Create all the HTML rows structure based on the given tags list.
+% The difference between upper predicate is that it generates links to
+% the real contents
+create_linked_rows(_, []) -->
+        [].
+create_linked_rows(BaseUrl, [X|Xs]) -->
+		% Generate link URL
+		{global_url(X, BaseUrl, GLink)},
+        html([ tr([ 
+        			td(
+	        			a([href(GLink),target('_blank')],
+	        				X
+	        			  )
+        				)
+                  ])
+             ]),!,
+        create_linked_rows(BaseUrl, Xs).
+% Clause needed in case one of the links fail
+create_linked_rows([BaseUrl, X|Xs]) -->
+        html([ tr([ td(X)
+                  ])
+             ]),!,
+        create_linked_rows(BaseUrl, Xs).
 
 % Predicate for meta tags rows
 create_meta_rows([]) -->
