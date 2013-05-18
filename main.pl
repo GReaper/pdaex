@@ -109,12 +109,13 @@ get_link_list(DOM, List) :-
 get_link_list(_,[]).
 
 % Get only valid links
-get_valid_links([],_).
-get_valid_links([X|Xs],[X|Ys]) :-
+get_valid_links([],_,_).
+get_valid_links([X|Xs], VisitedLinks, [X|Ys]) :-
+	\+member(X, VisitedLinks),
 	is_valid_link(X),!,
-	get_valid_links(Xs,Ys).
-get_valid_links([_|Xs],Ys) :-
-	get_valid_links(Xs,Ys).
+	get_valid_links(Xs, VisitedLinks, Ys).
+get_valid_links([_|Xs], VisitedLinks, Ys) :-
+	get_valid_links(Xs, VisitedLinks, Ys).
 %get_valid_links(DOM, List) :-
 %	setof(L, (xpath(DOM,//a(@href),L),is_valid_link(L)), List),!.
 % Clause needed to avoid JS retrieving problems. If it is not set,
@@ -386,7 +387,7 @@ process_main_url(URL, 0, OutGraph) :-
 	% Dump graph
 	%write('Graph ->'),writeln(OutGraph),
 	% HTML output dumping
-        append(Folder,"/",Directory),
+    append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
 	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph).
@@ -398,12 +399,14 @@ process_main_url(URL, N, OutGraph) :-
 	make_directory(Folder),
 	% Write process info
 	write('Processing: '),writeln(URL),
-        % Get URL HTML as DOM structure
+    % Get URL HTML as DOM structure
 	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
-	get_valid_links(LinkList, ValidLinks),
+	get_valid_links(LinkList, [], ValidLinks),
+	% Calculate visited links (or being visited)
+	append(ValidLinks, [URL], VisitedLinks),
 	% Get stylesheet links
 	get_all_style_list(DOM, CssLinks),
 	% Get javascript links
@@ -426,11 +429,11 @@ process_main_url(URL, N, OutGraph) :-
 	% Reduce exploring depth
 	M is N-1,
 	% Evaluate other levels
-	evaluate_level(ValidLinks, M, Graph, OutGraph, Folder),
+	evaluate_level(ValidLinks, M, Graph, OutGraph, Folder, VisitedLinks),
 	% Dump graph
 	%write('Graph ->'),writeln(OutGraph),
 	% HTML output dumping
-        append(Folder,"/",Directory),
+    append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
 	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph).
@@ -438,7 +441,7 @@ process_main_url(URL, N, OutGraph) :-
 % Process URL with no depth (only base URL)
 % In this case we only take all HTML info without
 % making the depth graph (only basic one)
-process_url(URL, 0, OutGraph, Folder) :-
+process_url(URL, 0, OutGraph, Folder, VisitedLinks, VisitedLinks) :-
 	% Don't try more
 	!,
 	% Write process info
@@ -475,14 +478,14 @@ process_url(URL, 0, OutGraph, Folder) :-
 	append(Charlist,".html",URIAppend),
 	substitute(":","_",URIAppend,ReplaceURIList),
 	substitute("/","_",ReplaceURIList,URITransform),
-        append(Folder,"/",Directory),
+    append(Folder,"/",Directory),
 	append(Directory,URITransform,DirectoryURI),
 	name(URI,DirectoryURI),
 	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph).
 
 % Process and URL with depth > 1. In this case we must build
 % the links graph and explore the new websites
-process_url(URL, N, OutGraph,Folder) :-
+process_url(URL, N, OutGraph, Folder, VisitedLinks, NewVisitedLinks) :-
 	% Write process info
 	write('Processing: '),writeln(URL),
         % Get URL HTML as DOM structure
@@ -490,7 +493,9 @@ process_url(URL, N, OutGraph,Folder) :-
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
-	get_valid_links(LinkList, ValidLinks),
+	get_valid_links(LinkList, VisitedLinks, ValidLinks),
+	% Recalculate visited links (althought they haven't been visited yet)
+	append(VisitedLinks, ValidLinks, NewVisitedLinks),
 	% Get stylesheet links
 	get_all_style_list(DOM, CssLinks),
 	% Get javascript links
@@ -513,7 +518,7 @@ process_url(URL, N, OutGraph,Folder) :-
 	% Reduce exploring depth
 	M is N-1,
 	% Evaluate other levels
-	evaluate_level(ValidLinks, M, Graph, OutGraph, Folder),
+	evaluate_level(ValidLinks, M, Graph, OutGraph, Folder, NewVisitedLinks),
 	% Dump graph
 	%write('Graph ->'),writeln(OutGraph),
 	% HTML output dumping
@@ -521,7 +526,7 @@ process_url(URL, N, OutGraph,Folder) :-
 	append(Charlist,".html",URIAppend),
 	substitute(":","_",URIAppend,ReplaceURIList),
 	substitute("/","_",ReplaceURIList,URITransform),
-        append(Folder,"/",Directory),
+    append(Folder,"/",Directory),
 	append(Directory,URITransform,DirectoryURI),
 	name(URI,DirectoryURI),
 	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph).
@@ -529,20 +534,21 @@ process_url(URL, N, OutGraph,Folder) :-
 % Evaluate remaining levels. We must take care of timeout or redirects
 % to HTTPS, so we will take all exceptions and avoid processing the
 % associated webs
-evaluate_level([], _ , Graph, Graph, _).
-evaluate_level([L|Ls], N, Graph, OutGraph, Folder) :-
+evaluate_level([], _ , Graph, Graph, _, _).
+evaluate_level([L|Ls], N, Graph, OutGraph, Folder, VisitedLinks) :-
 	catch(
 	      % Try section
 	      (
-	          process_url(L, N, LevelGraph, Folder),
+	          process_url(L, N, LevelGraph, Folder, VisitedLinks, NewVisitedLinks),
 	          % Graph union
 	          ugraph_union(Graph, LevelGraph, OGraph1),
-		  evaluate_level(Ls, N, OGraph1, OutGraph, Folder)
+		  	  evaluate_level(Ls, N, OGraph1, OutGraph, Folder, NewVisitedLinks)
 	      ),
 	      % Exception taking
 	      _,
 	      % Catch section
-	      (	  evaluate_level(Ls, N, Graph, OutGraph, Folder))
+	      (	  
+	      	  evaluate_level(Ls, N, Graph, OutGraph, Folder, VisitedLinks))
 	      ).
 
 %----------------------%
