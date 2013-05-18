@@ -2,16 +2,12 @@ PENDIENTES:
 - Filtro de links validos con nombres de dominio más usuales
 - Mejorar la toma del charset manualmente (buscando en el DOM)
 - Mejorar con HTTPS
-- Mostrar todos los 'meta' procesando manualmente
 - Búsqueda de patrones en URLs con profundidad (nueva funcionalidad): startswith, endswith, contains, depth
 - En función de cómo quede el grafo con muchos enlaces, realizar un IF y
 volcar el grafo a HTML de otra forma (según el número de vértices)
 NOTA: una posible forma es volcar el S-grafo de forma plana usando anclas en el propio documento HTML
-- Comprobar si es necesario agregar la URL como vértice si ya se añade
-en aristas
 - Convertir los css y js en URLs visualizables (enlazables en HTML) usando la librería de URLs
 - Cambiar nombre de directorio y mostrar la fecha y hora actual
-- No explorar enlaces ya revisados
 
 OTRAS:
 
@@ -22,3 +18,7 @@ COMPLETADAS:
 - Mejorar documentos a explorar con tipos de salida correctos (html,xml,etc)
 - Trabajar sobre listas en los enlaces (no usar de nuevo XPath)
 - Usar nuevo término para metas: meta(type,data)
+- No explorar enlaces ya revisados
+- Comprobar si es necesario agregar la URL como vértice si ya se añade
+en aristas
+- Mostrar todos los 'meta' procesando manualmente (hecho usando http-equiv quoted)
