@@ -333,8 +333,8 @@ copy(File1, File2) :-
 	open(File1,read,Stream1), 
 	open(File2,write,Stream2),
 	copy_stream_data(Stream1,Stream2),
-	close(File1),
-	close(File2),!.
+	close(Stream1),
+	close(Stream2),!.
 % Clause needed to avoid problems. If CSS is not copied the system
 % can continue running without problems.
 copy(_, _).
@@ -371,6 +371,12 @@ process_main_url(URL, 0, OutGraph) :-
 	get_time(TimeStamp),
 	name(TimeStamp,Folder),
 	make_directory(Folder),
+	% Copy css file to results folder
+	append(Folder,"/css",CssDirectory),
+	make_directory(CssDirectory),
+	append(CssDirectory,"/main.css",CssFile),
+	name(CssFilePath, CssFile),
+	copy('crawler_css/main.css',CssFilePath),
 	% Write process info
 	write('Processing main (0): '),writeln(URL),
 	% Get URL HTML as DOM structure
