@@ -239,10 +239,19 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
 			[ h2(align(center),
                         [Title]
 		       ),
-	       table([ align(center),
+			   table([ align(center),
                        width('100%')
                      ],
-                     [ tr([ th('Charset')
+                     [ 
+                     	tr([ th('Index') ])
+                     	|\create_index                 
+                     ]),
+	       	   table([ align(center),
+                       width('100%')
+                     ],
+                     [ tr([ th(
+				     			a([name('Charset')],'Charset')
+				     		)
                           ]),
 		       tr([ td(Charset)
                           ])
@@ -250,14 +259,18 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                table([ align(center),
                        width('100%')
                      ],
-                     [ tr([ th('Style tags')
+                     [ tr([ th(
+				     			a([name('Style')],'Style tags')
+				     		)
                           ])
                      |\create_linked_rows(Title,Styles)
                      ]),
                table([ align(center),
                        width('100%')
                      ],
-                     [ tr([ th('JS tags')
+                     [ tr([ th(
+				     			a([name('JS')],'JavaScript tags')
+				     		)
                           ])
                      |\create_linked_rows(Title,Js)
                      ]),
@@ -265,7 +278,8 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                        width('100%')
                      ],
                      [ tr([ th([colspan(2)],
-			       'Meta tags')
+				     		a([name('Meta')],'Meta tags')
+				     		)
                           ]),
 		       tr([ th([width('50%')],
 			       'Type'),
@@ -277,18 +291,57 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
 	        table([ align(center),
                        width('100%')
                      ],
-                     [ tr([ th('Hosts graph')
+                     [ tr([ th(
+				     			a([name('HostsTable')],'Hosts graph (table)')
+				     		)
                           ])
                      |\dump_complete_graph(Graph, Graph)
                      ]),
 	        table([ align(center),
                        width('100%')
                      ],
-                     [ tr([ th('Complete graph')
+                     [ tr([ th(
+				     			a([name('LinksTable')],'Links table')
+				     		)
                           ])
                      |\dump_complete_graph(CompleteGraph, CompleteGraph)
                      ])
              ]).
+
+% Predicate to create the output HTML index
+create_index -->
+	    {name(CCharset,"#Charset")},
+	    {name(CStyle,"#Style")},
+     	{name(CJS,"#JS")},  
+     	{name(CMeta,"#Meta")},  
+     	{name(CHTable,"#HostsTable")}, 
+     	{name(CLTable,"#LinksTable")},   
+		html([
+	     	tr([ td(
+	     			a([href(CCharset)],'Charset')
+	     		) 
+	     	]), 
+	     	tr([ td(
+	     			a([href(CStyle)],'Style')
+	     		) 
+	     	]),
+	     	tr([ td(
+	     			a([href(CJS)],'JavaScript')
+	     		) 
+	     	]),
+	     	tr([ td(
+	     			a([href(CMeta)],'Metas')
+	     		) 
+	     	]),
+	     	tr([ td(
+	     			a([href(CHTable)],'Hosts table')
+	     		) 
+	     	]),
+	     	tr([ td(
+	     			a([href(CLTable)],'Links table')
+	     		) 
+	     	])
+	     	]).
 
 % Create all the HTML rows structure based on the given tags list
 create_rows([]) -->
