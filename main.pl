@@ -562,7 +562,7 @@ process_url(URL, N, OutGraph, OutCompleteGraph, Folder, VisitedLinks, NewVisited
 % Evaluate remaining levels. We must take care of timeout or redirects
 % to HTTPS, so we will take all exceptions and avoid processing the
 % associated webs
-evaluate_level([], _ , Graph, Graph, _, _).
+evaluate_level([], _ , Graph, Graph, CompleteGraph, CompleteGraph, _, _).
 evaluate_level([L|Ls], N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks) :-
 	catch(
 	      % Try section
@@ -620,4 +620,4 @@ test8 :- process_main_url('http://www.fdi.ucm.es/',2,OG,_)
 test9 :- process_main_url('http://www.philosophyofinformation.net/unesco/.html',0,_,_).
 
 % General predicate test
-genTest(URL, Depth) :- process_main_url(URL, Depth, _).
+genTest(URL, Depth) :- process_main_url(URL, Depth, _, _).
