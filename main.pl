@@ -326,6 +326,18 @@ create_meta_rows([T1:C1|Xs]) -->
              ]),
         create_meta_rows(Xs).
 
+% Predicate to copy one file to another. It will be used to 
+% auto copy the CSS file to every output folder
+copy(File1, File2) :- 
+	open(File1,read,Stream1), 
+	open(File2,write,Stream2),
+	copy_stream_data(File1,File2),
+	close(File1),
+	close(File2),!.
+% Clause needed to avoid problems. If CSS is not copied the system
+% can continue running without problems.
+copy(_, _).
+
 %------------------%
 % GRAPHS FUNCTIONS %
 %------------------%
