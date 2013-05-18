@@ -1,9 +1,32 @@
 body
 {
-	background-color: grey;
+	background-color: #bfe5ff;
+}
+
+h2
+{	
+	background-color: #ffcc66;
+	padding: 5px;
 }
 
 table
 {
 	padding-bottom: 30px;
+	border: 0px;
+}
+	
+th
+{
+	background-color: #c5ffbf;
+	padding: 5px;
+}
+
+tr
+{
+	background-color: #ffffcc;
+}
+
+td
+{
+	padding: 3px;
 }
