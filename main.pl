@@ -360,6 +360,16 @@ dump_complete_graph([_|Xs], Graph) -->
 generate_link_neigh([], _) -->
 		[].
 generate_link_neigh([N|Xs], Graph) -->
+		{ 
+		not_headed_node(Graph, N)
+		},
+		html([ tr([ 
+					td(N)
+	            ])
+	          ]),
+		!,
+		generate_link_neigh(Xs, Graph).
+generate_link_neigh([N|Xs], Graph) -->
 		% Generate anchor
 		{ 
 		name(N,L1),
@@ -368,9 +378,11 @@ generate_link_neigh([N|Xs], Graph) -->
 		},
 		html([ tr([ 
 					td(
-						a([href(Anchor)],
+						
+						a(
+							[href(Anchor)],
 							N
-							)
+						)
 					)
 	            ])
 	          ]),
@@ -382,7 +394,9 @@ generate_link_neigh([_|Xs], Graph) -->
 
 % Predicate to test if the given node will be on
 % the graph headers (used for anchors)
-is_headed_node([N-[]|_],N).
+not_headed_node([N-[]|_], N).
+not_headed_node([_|Xs], N) :-
+	not_headed_node(Xs, N).
 
 %--------------------------%
 % FILES & FOLDER FUNCTIONS %
