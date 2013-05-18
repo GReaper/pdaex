@@ -358,7 +358,7 @@ process_main_url(URL, 0, OutGraph) :-
 	name(TimeStamp,Folder),
 	make_directory(Folder),
 	% Write process info
-	write('Processing: '),writeln(URL),
+	write('Processing main (0): '),writeln(URL),
 	% Get URL HTML as DOM structure
 	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
@@ -398,7 +398,7 @@ process_main_url(URL, N, OutGraph) :-
 	name(TimeStamp,Folder),
 	make_directory(Folder),
 	% Write process info
-	write('Processing: '),writeln(URL),
+	write('Processing main ('),write(N),write('): '),writeln(URL),
     % Get URL HTML as DOM structure
 	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
@@ -446,7 +446,7 @@ process_url(URL, 0, OutGraph, Folder, VisitedLinks, VisitedLinks) :-
 	% Don't try more
 	!,
 	% Write process info
-	write('Processing: '),writeln(URL),
+	write('Processing (0): '),writeln(URL),
 	% Get URL HTML as DOM structure
 	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
@@ -488,7 +488,7 @@ process_url(URL, 0, OutGraph, Folder, VisitedLinks, VisitedLinks) :-
 % the links graph and explore the new websites
 process_url(URL, N, OutGraph, Folder, VisitedLinks, NewVisitedLinks) :-
 	% Write process info
-	write('Processing: '),writeln(URL),
+	write('Processing ('),write(N),write('): '),writeln(URL),
         % Get URL HTML as DOM structure
 	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
