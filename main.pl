@@ -251,7 +251,8 @@ html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph) :-
 % Predicate to generate the HTML structure to be dumped
 html_structure(Title,Charset,Styles,Js,Metas,Graph) -->
 		page([title([Title]),
-			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')])
+			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')]),
+			link([rel('stylesheet'),type('text/css'),href('css/main.css')])
 			],
 			[ h2(align(center),
                         [Title]
@@ -331,7 +332,7 @@ create_meta_rows([T1:C1|Xs]) -->
 copy(File1, File2) :- 
 	open(File1,read,Stream1), 
 	open(File2,write,Stream2),
-	copy_stream_data(File1,File2),
+	copy_stream_data(Stream1,Stream2),
 	close(File1),
 	close(File2),!.
 % Clause needed to avoid problems. If CSS is not copied the system
