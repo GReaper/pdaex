@@ -153,8 +153,8 @@ init_graph_js(Folder, FileName, Stream) :-
 	open(JsFilePath, write, Stream),
 	% Init file
 	write(Stream, '$(document).ready(function() {'), nl(Stream),
-	write(Stream, 'var width = $(document).width();'), nl(Stream),
-	write(Stream, 'var height = $(document).height();'), nl(Stream),
+	write(Stream, 'var width = $(window).width();'), nl(Stream),
+	write(Stream, 'var height = $(window).height();'), nl(Stream),
 	!.
 % In case of fail, we cannot continue cause JS is needed for the graph
 init_graph_js(_, _, _) :-
