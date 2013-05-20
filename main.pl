@@ -441,7 +441,7 @@ dump_graph_to_html(Title,Graph,Folder) -->
 	{vertices(Graph, V),
 	length(V, L),
 	% Check if the complete graph is small enought
-	L < 2, !},
+	L < 20, !},
 	dump_one_graph(Title,Graph,Folder).
 	
 dump_graph_to_html(_,Graph,Folder) -->
@@ -478,11 +478,23 @@ dump_one_graph(Title,Graph,Folder) -->
 dump_one_graph(_,_) --> [].
 
 % Generate multiple graphs JS	
-dump_multiple_graphs([]) --> [].
+dump_multiple_graphs([],_,_) --> [].
+
+% Don't dump empty roots
+dump_multiple_graphs([_-[]|Xs],Stream,Name) -->
+	{!},
+	dump_multiple_graphs(Xs,Stream,Name).
+	
 dump_multiple_graphs([Root-Nodes|Xs],Stream,Name) -->
 	{
 		head_graph_js(Stream, Name),
-		partial_js_graph(Root, Nodes, Stream, Name),
+		length(Nodes, L),
+		(
+			(L > 20) ->
+			partial_js_graph(Root, ['Too much nodes to be displayed'], Stream, Name)
+			;
+			partial_js_graph(Root, Nodes, Stream, Name)
+		),
 		ending_graph_js(Stream, Name),
 		name(Name, N1),
 		append("canvas", N1, C1),
@@ -491,7 +503,10 @@ dump_multiple_graphs([Root-Nodes|Xs],Stream,Name) -->
 		!
 	},
 	html([
-		div([id(CanvasName)],'')
+		h2(align(center),
+			[Root]
+			),
+		div([id(CanvasName),class('g_canvas')],'')
 	]),
 	dump_multiple_graphs(Xs,Stream,NextName).
 	
@@ -508,6 +523,10 @@ create_index -->
 	{name(CHTable,"#HostsTable")},
 	{name(CLTable,"#LinksTable")},
 		html([
+		tr([ td(
+				a([href('graph.html'),target('_blank')],'Hosts graph')
+			)
+		]),
 		tr([ td(
 				a([href(CCharset)],'Charset')
 			)
@@ -608,7 +627,11 @@ generate_link_neigh([N|Xs], Graph) -->
 		not_headed_node(Graph, N)
 		},
 		html([ tr([
-			   td(N)
+				   td(
+					   a([href(N)],
+							N
+						   )
+					   )
 	               ])
 	          ]),
 		!,
@@ -622,9 +645,12 @@ generate_link_neigh([N|Xs], Graph) -->
 		},
 		html([ tr([
 			    td(
-			       a([href(Anchor)],
-				 N
-				)
+			       [a([href(N)],
+				    N
+				   ),'&nbsp;&nbsp;',
+				   a([href(Anchor)],
+				    '(Go to anchor)'
+				   )]
 			    )
 	                ])
 	            ]),
