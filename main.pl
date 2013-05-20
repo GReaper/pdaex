@@ -400,7 +400,7 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
 							a([name('HostsTable')],'Hosts graph (table)')
 						)
                           ])
-                     |\dump_complete_graph(Graph, Graph)
+                     |\dump_complete_graph(Graph, Graph, 0)
                      ]),
 	        table([ align(center),
                        width('100%')
@@ -409,7 +409,7 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
 							a([name('LinksTable')],'Links table')
 						)
                           ])
-                     |\dump_complete_graph(CompleteGraph, CompleteGraph)
+                     |\dump_complete_graph(CompleteGraph, CompleteGraph, 1)
                      ])
              ]).
 			 
@@ -601,10 +601,10 @@ create_meta_rows([T1:C1|Xs]) -->
 dump_complete_graph([], _) -->
 		[].
 % Do not write isolated nodes
-dump_complete_graph([_-[]|Xs], Graph) -->
+dump_complete_graph([_-[]|Xs], Graph, External) -->
 		!,
-		dump_complete_graph(Xs, Graph).
-dump_complete_graph([Ver-Neigh|Xs], Graph) -->
+		dump_complete_graph(Xs, Graph, External).
+dump_complete_graph([Ver-Neigh|Xs], Graph, External) -->
 		html([ tr([
 					th(
 						a([name(Ver)],
@@ -613,52 +613,50 @@ dump_complete_graph([Ver-Neigh|Xs], Graph) -->
 						)
 	               ])
 	          ]),!,
-		generate_link_neigh(Neigh, Graph),
-		dump_complete_graph(Xs, Graph).
+		generate_link_neigh(Neigh, Graph, External),
+		dump_complete_graph(Xs, Graph, External).
 % Continue dump althought one step fails
-dump_complete_graph([_|Xs], Graph) -->
-		dump_complete_graph(Xs, Graph),!.
+dump_complete_graph([_|Xs], Graph, External) -->
+		dump_complete_graph(Xs, Graph, External),!.
 		
-% Aux. predicate to dump every link neighbour
-generate_link_neigh([], _) -->
+% Aux. predicate to dump every link neighbour. "External" param will be used to
+% write or not external links. 
+generate_link_neigh([], _, _) -->
 		[].
-generate_link_neigh([N|Xs], Graph) -->
+generate_link_neigh([N|Xs], Graph, External) -->
 		{
-		not_headed_node(Graph, N)
+		not_headed_node(Graph, N),
+		( (External =:= 1) -> DLink =  a([href(N)],N) ; DLink = N )
 		},
 		html([ tr([
-				   td(
-					   a([href(N)],
-							N
-						   )
-					   )
+				   td(DLink)
 	               ])
 	          ]),
 		!,
-		generate_link_neigh(Xs, Graph).
-generate_link_neigh([N|Xs], Graph) -->
+		generate_link_neigh(Xs, Graph, External).
+generate_link_neigh([N|Xs], Graph, External) -->
 		% Generate anchor
 		{
 		name(N,L1),
 		append("#",L1,L2),
-		name(Anchor,L2)
+		name(Anchor,L2),
+		( (External =:= 1) -> DLink = a([href(N)],N) ; DLink = N )
 		},
 		html([ tr([
 			    td(
-			       [a([href(N)],
-				    N
-				   ),'&nbsp;&nbsp;',
-				   a([href(Anchor)],
-				    '(Go to anchor)'
-				   )]
-			    )
-	                ])
-	            ]),
+			         [DLink,
+					  ,'&nbsp;&nbsp;',
+				      a([href(Anchor)],
+				        '(Go to anchor)'
+				      )]
+			       )
+	            ])
+	        ]),
 		!,
-		generate_link_neigh(Xs, Graph).
+		generate_link_neigh(Xs, Graph, External).
 % Continue dump althought one step fails
-generate_link_neigh([_|Xs], Graph) -->
-		generate_link_neigh(Xs, Graph),!.
+generate_link_neigh([_|Xs], Graph, External) -->
+		generate_link_neigh(Xs, Graph, External),!.
 
 % Predicate to test if the given node will be on
 % the graph headers (used for anchors)
