@@ -143,7 +143,7 @@ get_all_js_list(_,[]).
 uses_js(DOM) :- xpath(DOM,//script(@type='text/javascript'),_).
 
 % Predicate to init the JS file for the graph
-init_graph_js(Graph, Folder, FileName, Stream) :-
+init_graph_js(Folder, FileName, Stream) :-
 	% Compose JS file path
 	append(Folder,"/js/",F1),
 	append(F1, FileName, F2),
@@ -157,7 +157,7 @@ init_graph_js(Graph, Folder, FileName, Stream) :-
 	write(Stream, 'var height = $(document).height();'), nl(Stream),
 	!.
 % In case of fail, we cannot continue cause JS is needed for the graph
-init_graph_js(_, _, _, _) :-
+init_graph_js(_, _, _) :-
 	write('Error: cannot create the JS file. '),
 	writeln('Please, check you have got the right permissions.'),
 	fail.
@@ -169,6 +169,7 @@ head_graph_js(Stream, Name) :-
 	append(H1, " = new Graph();", H2),
 	name(GraphHead, H2),
 	write(Stream, GraphHead),
+	nl(Stream),
 	append("g", N, H3),
 	append(H3, ".edgeFactory.template.style.directed = true;", H4),
 	name(GraphDirected, H4),
@@ -185,7 +186,7 @@ head_graph_js(_, _) :-
 ending_graph_js(Stream, Name) :-
 	name(Name, N),
 	append("var layouter", N, E1),
-	append(E1, " = new Graph.Layout.Ordered(g", E2),
+	append(E1, " = new Graph.Layout.Spring(g", E2),
 	append(E2, N, E3),
 	append(E3, ");", E4),
 	name(Layouter, E4),
@@ -224,7 +225,7 @@ full_js_graph([], _, _).
 full_js_graph([V1-V2|Xs], Stream, Name) :-
 		name(Name, N1),
 		append("g", N1, N2),
-		append(N2, "", N3),
+		append(N2, ".addEdge(\"", N3),
 		name(GStart, N3),
 		write(Stream, GStart),
 		write(Stream, V1),
@@ -233,10 +234,29 @@ full_js_graph([V1-V2|Xs], Stream, Name) :-
 		write(Stream, '");'),
 		nl(Stream),
 		!,
-		dump_js_graph(Xs, Stream, Name).
+		full_js_graph(Xs, Stream, Name).
 % Continue dump althought one step fails
 full_js_graph([_|Xs], Stream, Name) :-
-		dump_js_graph(Xs, Stream, Name),!.
+		full_js_graph(Xs, Stream, Name),!.
+		
+% Predicate to dump one graph section into the JS file
+partial_js_graph(_, [], _, _).
+partial_js_graph(Root, [X|Xs], Stream, Name) :-
+		name(Name, N1),
+		append("g", N1, N2),
+		append(N2, "", N3),
+		name(GStart, N3),
+		write(Stream, GStart),
+		write(Stream, Root),
+		write(Stream, '" , "'),
+		write(Stream, X),
+		write(Stream, '");'),
+		nl(Stream),
+		!,
+		partial_js_graph(Root, Xs, Stream, Name).
+% Continue dump althought one step fails
+partial_js_graph(Root, [_|Xs], Stream, Name) :-
+		partial_js_graph(Root, Xs, Stream, Name),!.
 
 %-----------------%
 % META PREDICATES %
@@ -395,13 +415,13 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
 			 
 % This predicate creates an HTML output document and dumps
 % the hosts graph
-html_create_graph_document(URI,Title,Graph) :-
-	phrase(html_graph_structure(Title,Graph), Tokens),
+html_create_graph_document(URI,Title,Graph,Folder) :-
+	phrase(html_graph_structure(Title,Graph,Folder), Tokens),
 	open(URI, write, Stream),
 	print_html(Stream,Tokens),
 	close(Stream).
 
-html_graph_structure(Title,Graph) -->
+html_graph_structure(Title,Graph,Folder) -->
 		page([title(['Hosts graph']),
 			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')]),
 			link([rel('stylesheet'),type('text/css'),href('css/main.css')]),
@@ -413,25 +433,72 @@ html_graph_structure(Title,Graph) -->
 			script([type('text/javascript'),src('js/index.js')],'')
 			],
 			[ 
-				h2(align(center),
-               ['Hosts graph']
-		       )
-			   |\dump_graph_to_html(Graph)
-			%div([id('canvas')],'')
+			   \dump_graph_to_html(Title,Graph,Folder)
             ]).
 			
 % Predicate to dump the graph HTML content
-dump_graph_to_html(Graph) -->
+dump_graph_to_html(Title,Graph,Folder) -->
 	{vertices(Graph, V),
 	length(V, L),
 	% Check if the complete graph is small enought
-	L < 25, !},
-	dump_one_graph(Graph).
-dump_graph_to_html(Graph) -->
-	dump_multiple_graphs(Graph),{!}.
-dump_graph_to_html(_) -->
+	L < 2, !},
+	dump_one_graph(Title,Graph,Folder).
+	
+dump_graph_to_html(_,Graph,Folder) -->
+	{
+		init_graph_js(Folder, "index", Stream)
+	},
+	dump_multiple_graphs(Graph,Stream,0),
+	{
+		close_graph_js(Stream),
+		!
+	}.
+	
+dump_graph_to_html(_,_,_) -->
 	{writeln('Error: graph has not been created. Aborting execution.')},
 	[].
+
+% Generate one graph JS
+dump_one_graph(Title,Graph,Folder) -->
+	{
+		edges(Graph, Edges),
+		init_graph_js(Folder, "index", Stream),
+		head_graph_js(Stream, 1),
+		full_js_graph(Edges, Stream, 1),
+		ending_graph_js(Stream, 1),
+		close_graph_js(Stream),
+		!
+	},
+	html([
+		h2(align(center),
+			[Title]
+			),
+		div([id('canvas1')],'')
+	]).
+dump_one_graph(_,_) --> [].
+
+% Generate multiple graphs JS
+dump_multiple_graphs([X|Xs],Stream,Name) -->
+	{
+		head_graph_js(Stream, Name),
+		full_js_graph(X, Stream, Name),
+		ending_graph_js(Stream, Name),
+		name(Name, N1),
+		append("canvas", N1, C1),
+		name(CanvasName, C1),
+		NextName = Name + 1,
+		!
+	},
+	html([
+		div([id(CanvasName)],'')
+		|\dump_multiple_graphs(Xs,Stream,NextName)
+	]).
+	
+dump_multiple_graphs([_|Xs],Stream,Name) -->
+	{!},
+	dump_multiple_graphs(Xs,Stream,Name).
+	
+dump_multiple_graphs([]) --> [].
 
 % Predicate to create the output HTML index
 create_index -->
@@ -751,7 +818,7 @@ process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
 	append(Directory,"graph.html",GraphURI),
 	name(GURI,GraphURI),
-	html_create_graph_document(GURI,URL,OutGraph).
+	html_create_graph_document(GURI,URL,OutGraph,Folder).
 
 process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	% Create results folder
@@ -810,7 +877,7 @@ process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	%create_graph_js(OutGraph, Folder, "index"),
 	append(Directory,"graph.html",GraphURI),
 	name(GURI,GraphURI),
-	html_create_graph_document(GURI,URL,OutGraph),
+	html_create_graph_document(GURI,URL,OutGraph,Folder),
 	!.
 
 % Process URL with no depth (only base URL)
