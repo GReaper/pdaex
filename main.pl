@@ -244,7 +244,7 @@ partial_js_graph(_, [], _, _).
 partial_js_graph(Root, [X|Xs], Stream, Name) :-
 		name(Name, N1),
 		append("g", N1, N2),
-		append(N2, "", N3),
+		append(N2, ".addEdge(\"", N3),
 		name(GStart, N3),
 		write(Stream, GStart),
 		write(Stream, Root),
@@ -477,28 +477,27 @@ dump_one_graph(Title,Graph,Folder) -->
 	]).
 dump_one_graph(_,_) --> [].
 
-% Generate multiple graphs JS
-dump_multiple_graphs([X|Xs],Stream,Name) -->
+% Generate multiple graphs JS	
+dump_multiple_graphs([]) --> [].
+dump_multiple_graphs([Root-Nodes|Xs],Stream,Name) -->
 	{
 		head_graph_js(Stream, Name),
-		full_js_graph(X, Stream, Name),
+		partial_js_graph(Root, Nodes, Stream, Name),
 		ending_graph_js(Stream, Name),
 		name(Name, N1),
 		append("canvas", N1, C1),
 		name(CanvasName, C1),
-		NextName = Name + 1,
+		NextName is Name + 1,
 		!
 	},
 	html([
 		div([id(CanvasName)],'')
-		|\dump_multiple_graphs(Xs,Stream,NextName)
-	]).
+	]),
+	dump_multiple_graphs(Xs,Stream,NextName).
 	
 dump_multiple_graphs([_|Xs],Stream,Name) -->
 	{!},
 	dump_multiple_graphs(Xs,Stream,Name).
-	
-dump_multiple_graphs([]) --> [].
 
 % Predicate to create the output HTML index
 create_index -->
