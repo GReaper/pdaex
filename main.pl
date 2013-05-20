@@ -213,17 +213,24 @@ cleanly_load_html(_,[]).
 
 % This predicate creates an HTML output document and dumps
 % all retrieved data
-html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) :-
-	phrase(html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph), Tokens),
+html_create_document(Type,URI,Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) :-
+	phrase(html_structure(Type,Title,Charset,Styles,Js,Metas,Graph,CompleteGraph), Tokens),
 	open(URI, write, Stream),
 	print_html(Stream,Tokens),
 	close(Stream).
 
-% Predicate to generate the HTML structure to be dumped
-html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
+% Predicate to generate the HTML structure to be dumped. We need to distinct between
+% the main URL and other data URLs. Main URL will have the JS main Graph
+html_structure(main,Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
 		page([title([Title]),
 			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')]),
-			link([rel('stylesheet'),type('text/css'),href('css/main.css')])
+			link([rel('stylesheet'),type('text/css'),href('css/main.css')]),
+			script([type('text/javascript'),src('js/raphael-min.js')],''),
+			script([type('text/javascript'),src('js/dracula_graffle.js')],''),
+			script([type('text/javascript'),src('js/jquery-1.4.2.min.js')],''),
+			script([type('text/javascript'),src('js/dracula_graph.js')],''),
+			script([type('text/javascript'),src('js/dracula_algorithms.js')],''),
+			script([type('text/javascript'),src('js/index.js')],'')
 			],
 			[ h2(align(center),
                         [Title]
@@ -231,16 +238,16 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
 			   table([ align(center),
                        width('100%')
                      ],
-                     [ 
-                     	tr([ th('Index') ])
-                     	|\create_index                 
+                     [
+			tr([ th('Index') ])
+			|\create_index
                      ]),
-	       	   table([ align(center),
+		   table([ align(center),
                        width('100%')
                      ],
                      [ tr([ th(
-				     			a([name('Charset')],'Charset')
-				     		)
+							a([name('Charset')],'Charset')
+						)
                           ]),
 		       tr([ td(Charset)
                           ])
@@ -249,8 +256,8 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                        width('100%')
                      ],
                      [ tr([ th(
-				     			a([name('Style')],'Style tags')
-				     		)
+							a([name('Style')],'Style tags')
+						)
                           ])
                      |\create_linked_rows(Title,Styles)
                      ]),
@@ -258,8 +265,8 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                        width('100%')
                      ],
                      [ tr([ th(
-				     			a([name('JS')],'JavaScript tags')
-				     		)
+							a([name('JS')],'JavaScript tags')
+						)
                           ])
                      |\create_linked_rows(Title,Js)
                      ]),
@@ -267,8 +274,8 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                        width('100%')
                      ],
                      [ tr([ th([colspan(2)],
-				     		a([name('Meta')],'Meta tags')
-				     		)
+						a([name('Meta')],'Meta tags')
+						)
                           ]),
 		       tr([ th([width('50%')],
 			       'Type'),
@@ -281,8 +288,20 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                        width('100%')
                      ],
                      [ tr([ th(
-				     			a([name('HostsTable')],'Hosts graph (table)')
-				     		)
+							a([name('HostsGraph')],'Hosts graph')
+						)
+                          ]),
+						tr([ td(
+							div([id('canvas')],'')
+						)
+                          ])
+                     ]),
+	        table([ align(center),
+                       width('100%')
+                     ],
+                     [ tr([ th(
+							a([name('HostsTable')],'Hosts graph (table)')
+						)
                           ])
                      |\dump_complete_graph(Graph, Graph)
                      ]),
@@ -290,47 +309,140 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                        width('100%')
                      ],
                      [ tr([ th(
-				     			a([name('LinksTable')],'Links table')
-				     		)
+							a([name('LinksTable')],'Links table')
+						)
                           ])
                      |\dump_complete_graph(CompleteGraph, CompleteGraph)
                      ])
              ]).
 
+			 
+html_structure(other,Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
+		page([title([Title]),
+			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')]),
+			link([rel('stylesheet'),type('text/css'),href('css/main.css')])
+			],
+			[ h2(align(center),
+                        [Title]
+		       ),
+			   table([ align(center),
+                       width('100%')
+                     ],
+                     [
+			tr([ th('Index') ])
+			|\create_index
+                     ]),
+		   table([ align(center),
+                       width('100%')
+                     ],
+                     [ tr([ th(
+							a([name('Charset')],'Charset')
+						)
+                          ]),
+		       tr([ td(Charset)
+                          ])
+                     ]),
+               table([ align(center),
+                       width('100%')
+                     ],
+                     [ tr([ th(
+							a([name('Style')],'Style tags')
+						)
+                          ])
+                     |\create_linked_rows(Title,Styles)
+                     ]),
+               table([ align(center),
+                       width('100%')
+                     ],
+                     [ tr([ th(
+							a([name('JS')],'JavaScript tags')
+						)
+                          ])
+                     |\create_linked_rows(Title,Js)
+                     ]),
+               table([ align(center),
+                       width('100%')
+                     ],
+                     [ tr([ th([colspan(2)],
+						a([name('Meta')],'Meta tags')
+						)
+                          ]),
+		       tr([ th([width('50%')],
+			       'Type'),
+			    th([width('50%')],
+			       'Content')
+                          ])
+                     |\create_meta_rows(Metas)
+                     ]),
+	        table([ align(center),
+                       width('100%')
+                     ],
+                     [ tr([ th(
+							a([name('HostsGraph')],'Hosts graph')
+						)
+                          ]),
+						tr([ td('Hosts graph is only generated for main URL. If you need this graph retry the crawling process with the current URL.')
+                          ])
+                     ]),
+	        table([ align(center),
+                       width('100%')
+                     ],
+                     [ tr([ th(
+							a([name('HostsTable')],'Hosts graph (table)')
+						)
+                          ])
+                     |\dump_complete_graph(Graph, Graph)
+                     ]),
+	        table([ align(center),
+                       width('100%')
+                     ],
+                     [ tr([ th(
+							a([name('LinksTable')],'Links table')
+						)
+                          ])
+                     |\dump_complete_graph(CompleteGraph, CompleteGraph)
+                     ])
+             ]).
+			 
 % Predicate to create the output HTML index
 create_index -->
 	    {name(CCharset,"#Charset")},
 	    {name(CStyle,"#Style")},
-     	{name(CJS,"#JS")},  
-     	{name(CMeta,"#Meta")},  
-     	{name(CHTable,"#HostsTable")}, 
-     	{name(CLTable,"#LinksTable")},   
+	{name(CJS,"#JS")},
+	{name(CMeta,"#Meta")},
+	{name(CHTable,"#HostsTable")},
+	{name(CHGraph,"#HostsGraph")},
+	{name(CLTable,"#LinksTable")},
 		html([
-	     	tr([ td(
-	     			a([href(CCharset)],'Charset')
-	     		) 
-	     	]), 
-	     	tr([ td(
-	     			a([href(CStyle)],'Style')
-	     		) 
-	     	]),
-	     	tr([ td(
-	     			a([href(CJS)],'JavaScript')
-	     		) 
-	     	]),
-	     	tr([ td(
-	     			a([href(CMeta)],'Metas')
-	     		) 
-	     	]),
-	     	tr([ td(
-	     			a([href(CHTable)],'Hosts table')
-	     		) 
-	     	]),
-	     	tr([ td(
-	     			a([href(CLTable)],'Links table')
-	     		) 
-	     	])
-	     	]).
+		tr([ td(
+				a([href(CCharset)],'Charset')
+			)
+		]),
+		tr([ td(
+				a([href(CStyle)],'Style')
+			)
+		]),
+		tr([ td(
+				a([href(CJS)],'JavaScript')
+			)
+		]),
+		tr([ td(
+				a([href(CMeta)],'Metas')
+			)
+		]),
+		tr([ td(
+				a([href(CHGraph)],'Hosts graph')
+			)
+		]),
+		tr([ td(
+				a([href(CHTable)],'Hosts table')
+			)
+		]),
+		tr([ td(
+				a([href(CLTable)],'Links table')
+			)
+		])
+		]).
 
 % Create all the HTML rows structure based on the given tags list
 create_rows([]) -->
@@ -349,12 +461,12 @@ create_linked_rows(_, []) -->
 create_linked_rows(BaseUrl, [X|Xs]) -->
 		% Generate link URL
 		{global_url(X, BaseUrl, GLink)},
-        html([ tr([ 
-        			td(
-	        			a([href(GLink),target('_blank')],
-	        				X
-	        			  )
-        				)
+        html([ tr([
+				td(
+					a([href(GLink),target('_blank')],
+						X
+					  )
+					)
                   ])
              ]),!,
         create_linked_rows(BaseUrl, Xs).
@@ -384,7 +496,7 @@ dump_complete_graph([_-[]|Xs], Graph) -->
 		!,
 		dump_complete_graph(Xs, Graph).
 dump_complete_graph([Ver-Neigh|Xs], Graph) -->
-		html([ tr([ 
+		html([ tr([
 					th(
 						a([name(Ver)],
 							Ver
@@ -397,37 +509,35 @@ dump_complete_graph([Ver-Neigh|Xs], Graph) -->
 % Continue dump althought one step fails
 dump_complete_graph([_|Xs], Graph) -->
 		dump_complete_graph(Xs, Graph),!.
-
+		
 % Aux. predicate to dump every link neighbour
 generate_link_neigh([], _) -->
 		[].
 generate_link_neigh([N|Xs], Graph) -->
-		{ 
+		{
 		not_headed_node(Graph, N)
 		},
-		html([ tr([ 
-					td(N)
-	            ])
+		html([ tr([
+			   td(N)
+	               ])
 	          ]),
 		!,
 		generate_link_neigh(Xs, Graph).
 generate_link_neigh([N|Xs], Graph) -->
 		% Generate anchor
-		{ 
+		{
 		name(N,L1),
 		append("#",L1,L2),
 		name(Anchor,L2)
 		},
-		html([ tr([ 
-					td(
-						
-						a(
-							[href(Anchor)],
-							N
-						)
-					)
-	            ])
-	          ]),
+		html([ tr([
+			    td(
+			       a([href(Anchor)],
+				 N
+				)
+			    )
+	                ])
+	            ]),
 		!,
 		generate_link_neigh(Xs, Graph).
 % Continue dump althought one step fails
@@ -444,10 +554,10 @@ not_headed_node([_|Xs], N) :-
 % FILES & FOLDER FUNCTIONS %
 %--------------------------%
 
-% Predicate to copy one file to another. It will be used to 
+% Predicate to copy one file to another. It will be used to
 % auto copy the CSS file to every output folder
-copy(File1, File2) :- 
-	open(File1,read,Stream1), 
+copy(File1, File2) :-
+	open(File1,read,Stream1),
 	open(File2,write,Stream2),
 	copy_stream_data(Stream1,Stream2),
 	close(Stream1),
@@ -482,21 +592,97 @@ create_dump_folder(Folder, ContentFolder) :-
 	append(Folder, "/other_data",ContentFolder),
 	make_directory(ContentFolder),
 	!.
-create_dump_folder(_, _) :- 
+create_dump_folder(_, _) :-
 	write('Error: cannot create the output folder. '),
 	writeln('Please, check you have got the right permissions.'),
 	fail.
 
-% Predicate to dump the CSS files to the ouput folder
+% Predicate to copy the CSS files to the ouput folder
 generate_css_file(Folder) :-
 	append(Folder,"/css",CssDirectory),
 	make_directory(CssDirectory),
 	append(CssDirectory,"/main.css",CssFile),
 	name(CssFilePath, CssFile),
 	copy('crawler_css/main.css',CssFilePath),!.
-generate_css_file(_) :- 
+generate_css_file(_) :-
 	write('Warning: cannot create the css folder. '),
 	writeln('Please, check you have got the right permissions.').
+	
+% Predicate to copy the JS files to the ouput folder
+generate_js_files(Folder) :-
+	append(Folder,"/js",JsDirectory),
+	make_directory(JsDirectory),
+	% First JS file
+	append(JsDirectory,"/raphael-min.js",JsFile1),
+	name(JsFile1Path, JsFile1),
+	copy('crawler_js/raphael-min.js',JsFile1Path),
+	% Second JS file
+	append(JsDirectory,"/dracula_graffle.js",JsFile2),
+	name(JsFile2Path, JsFile2),
+	copy('crawler_js/dracula_graffle.js',JsFile2Path),
+	% Third JS file
+	append(JsDirectory,"/jquery-1.4.2.min.js",JsFile3),
+	name(JsFile3Path, JsFile3),
+	copy('crawler_js/jquery-1.4.2.min.js',JsFile3Path),
+	% Fourth JS file
+	append(JsDirectory,"/dracula_graph.js",JsFile4),
+	name(JsFile4Path, JsFile4),
+	copy('crawler_js/dracula_graph.js',JsFile4Path),
+	% Fourth JS file
+	append(JsDirectory,"/dracula_algorithms.js",JsFile5),
+	name(JsFile5Path, JsFile5),
+	copy('crawler_js/dracula_algorithms.js',JsFile5Path),
+	!.
+% In case of fail, we cannot continue cause JS is needed for the graph
+generate_js_files(_) :-
+	write('Error: cannot create the JS folder. '),
+	writeln('Please, check you have got the right permissions.'),
+	fail.
+	
+% Predicate to init the JS file for the graph
+create_graph_js(Graph, Folder, FileName) :-
+	% Compose JS file path
+	append(Folder,"/js/",F1),
+	append(F1, FileName, F2),
+	append(F2, ".js", JsFile),
+	name(JsFilePath, JsFile),
+	% Open file
+	open(JsFilePath, write, Stream),
+	% Init file
+	write(Stream, '$(document).ready(function() {'), nl(Stream),
+	write(Stream, 'var width = $(document).width();'), nl(Stream),
+	write(Stream, 'var height = $(document).height();'), nl(Stream),
+	write(Stream, 'var g = new Graph();'), nl(Stream),
+	% Get graph edges
+	edges(Graph, Edges),
+	dump_js_graph(Edges, Stream),
+	% End file
+	write(Stream, 'var layouter = new Graph.Layout.Spring(g);'), nl(Stream),	
+	write(Stream, 'var renderer = new Graph.Renderer.Raphael("canvas", g, width, height);'), nl(Stream),	
+	write(Stream, '});'),
+	% Close file
+	close(Stream),
+	!.
+% In case of fail, we cannot continue cause JS is needed for the graph
+create_graph_js(_, _, _) :-
+	write('Error: cannot create the JS file. '),
+	writeln('Please, check you have got the right permissions.'),
+	fail.
+	
+% Predicate to dump the complete graph into the JS file
+dump_js_graph([], _).
+dump_js_graph([V1-V2|Xs], Stream) :-
+		write(Stream, 'g.addEdge("'),
+		write(Stream, V1),
+		write(Stream, '" , "'),
+		write(Stream, V2),
+		write(Stream, '");'),
+		nl(Stream),
+		!,
+		dump_js_graph(Xs, Stream).
+% Continue dump althought one step fails
+dump_js_graph([_|Xs], Stream) :-
+		dump_js_graph(Xs, Stream),!.
 
 %------------------%
 % GRAPHS FUNCTIONS %
@@ -544,6 +730,8 @@ process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 	create_dump_folder(Folder, _),
 	% Copy css file to results folder
 	generate_css_file(Folder),
+	% Copy js files to results folder
+	generate_js_files(Folder),
 	% Write process info
 	write('Processing main (0): '),writeln(URL),
 	% Get URL HTML as DOM structure
@@ -575,19 +763,22 @@ process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 	%write('Charset ->'),writeln(Charset),
 	% Dump graph
 	%write('Graph ->'),writeln(OutGraph),
-	%write('Complete graph ->'),writeln(OutCompleteGraph),	
+	%write('Complete graph ->'),writeln(OutCompleteGraph),
+	create_graph_js(OutGraph, Folder, "index"),
 	% HTML output dumping
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph).
+	html_create_document(main,URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph).
 
 process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	% Create results folder
 	create_dump_folder(Folder, ContentFolder),
 	% Copy css file to results folder
-	generate_css_file(Folder),	
-	generate_css_file(ContentFolder),	
+	generate_css_file(Folder),
+	generate_css_file(ContentFolder),
+	% Copy js files to results folder
+	generate_js_files(Folder),
 	% Write process info
 	write('Processing main ('),write(N),write('): '),writeln(URL),
     % Get URL HTML as DOM structure
@@ -630,7 +821,11 @@ process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
+	html_create_document(main,URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
+	% Dump graph
+	%write('Graph ->'),writeln(OutGraph),
+	%write('Complete graph ->'),writeln(OutCompleteGraph),
+	create_graph_js(OutGraph, Folder, "index"),
 	!.
 
 % Process URL with no depth (only base URL)
@@ -678,7 +873,7 @@ process_url(URL, 0, OutGraph, OutCompleteGraph, Folder, VisitedLinks, VisitedLin
     append(Folder,"/",Directory),
 	append(Directory,URITransform,DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph).
+	html_create_document(other,URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph).
 
 % Process and URL with depth > 1. In this case we must build
 % the links graph and explore the new websites
@@ -728,7 +923,7 @@ process_url(URL, N, OutGraph, OutCompleteGraph, Folder, VisitedLinks, NewVisited
     append(Folder,"/",Directory),
 	append(Directory,URITransform,DirectoryURI),
 	name(URI,DirectoryURI),
-	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
+	html_create_document(other,URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
 	!.
 
 % Evaluate remaining levels. We must take care of timeout or redirects
@@ -743,13 +938,13 @@ evaluate_level([L|Ls], N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Fold
 	          % Graphs union
 	          ugraph_union(Graph, LevelGraph, OGraph1),
 	          ugraph_union(CompleteGraph, LevelCompleteGraph, LCGraph1),
-		  	  evaluate_level(Ls, N, OGraph1, OutGraph, LCGraph1, OutCompleteGraph, Folder, NewVisitedLinks)
+			  evaluate_level(Ls, N, OGraph1, OutGraph, LCGraph1, OutCompleteGraph, Folder, NewVisitedLinks)
 	      ),
 	      % Exception taking
 	      _,
 	      % Catch section
-	      (	  
-	      	  evaluate_level(Ls, N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks))
+	      (
+		  evaluate_level(Ls, N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks))
 	      ).
 
 %----------------------%
