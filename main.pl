@@ -475,7 +475,7 @@ dump_one_graph(Title,Graph,Folder) -->
 			),
 		div([id('canvas1')],'')
 	]).
-dump_one_graph(_,_) --> [].
+dump_one_graph(_,_,_) --> [].
 
 % Generate multiple graphs JS	
 dump_multiple_graphs([],_,_) --> [].
