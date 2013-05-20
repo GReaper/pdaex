@@ -598,7 +598,7 @@ create_meta_rows([T1:C1|Xs]) -->
         create_meta_rows(Xs).
 
 % Predicate to dump the complete graph in text form
-dump_complete_graph([], _) -->
+dump_complete_graph([], _, _) -->
 		[].
 % Do not write isolated nodes
 dump_complete_graph([_-[]|Xs], Graph, External) -->
@@ -645,7 +645,7 @@ generate_link_neigh([N|Xs], Graph, External) -->
 		html([ tr([
 			    td(
 			         [DLink,
-					  ,'&nbsp;&nbsp;',
+					  '  -->  ',
 				      a([href(Anchor)],
 				        '(Go to anchor)'
 				      )]
