@@ -1,13 +1,13 @@
 PENDIENTES:
-- Incluír el grafo de Javascript
 - Búsqueda de patrones en URLs con profundidad (nueva funcionalidad): startswith, endswith, contains, depth
-- En función de cómo quede el grafo con muchos enlaces, realizar un IF y
-volcar el grafo a HTML de otra forma (según el número de vértices)
 
 OTRAS:
 - Mejorar con HTTPS
 
 COMPLETADAS:
+- En función de cómo quede el grafo con muchos enlaces, realizar un IF y
+volcar el grafo a HTML de otra forma (según el número de vértices)
+- Incluír el grafo de Javascript
 - Creada exploración por niveles
 - Generado grafo de profundidad
 - Simplificar grafo a solo nombre de host
