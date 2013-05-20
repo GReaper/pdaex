@@ -3,9 +3,9 @@
 :- use_module(library(url)).
 :- use_module(library(http/html_write)).
 
-%------------------%
-% STRING FUNCTIONS %
-%------------------%
+%-------------------%
+% STRING PREDICATES %
+%-------------------%
 
 % Test wither an URL ends with the given pattern
 endsWith(URL, Pattern) :- sub_string(URL,_,_,0,Pattern).
@@ -43,9 +43,9 @@ replace(Find, Replace), [C] -->
 substitute(Find, Replace, Request, Result) :-
         phrase(replace(Find, Replace), Request, Result).
 
-%-----------------%
-% LINKS FUNCTIONS %
-%-----------------%
+%------------------%
+% LINKS PREDICATES %
+%------------------%
 
 % Test whether an URL is a valid link to be processed. Actually we
 % only support HTTP (not SSL) connections.
@@ -107,9 +107,9 @@ get_valid_links([X|Xs], VisitedLinks, [X|Ys]) :-
 get_valid_links([_|Xs], VisitedLinks, Ys) :-
 	get_valid_links(Xs, VisitedLinks, Ys).
 
-%---------------%
-% CSS FUNCTIONS %
-%---------------%
+%----------------%
+% CSS PREDICATES %
+%----------------%
 
 % Get all stylesheet links list
 get_all_style_list(DOM, List) :-
@@ -124,9 +124,9 @@ get_all_style_list(_,[]).
 uses_style(DOM) :- xpath(DOM,//style,_);
                    xpath(DOM,//link(@type='text/css'),_).
 
-%--------------%
-% JS FUNCTIONS %
-%--------------%
+%---------------%
+% JS PREDICATES %
+%---------------%
 
 % Get all Javascript links list
 get_all_js_list(DOM, List) :-
@@ -141,10 +141,55 @@ get_all_js_list(_,[]).
 % It is neccesary because a JS script may not be linked via <script>
 % label
 uses_js(DOM) :- xpath(DOM,//script(@type='text/javascript'),_).
+	
+% Predicate to init the JS file for the graph
+create_graph_js(Graph, Folder, FileName) :-
+	% Compose JS file path
+	append(Folder,"/js/",F1),
+	append(F1, FileName, F2),
+	append(F2, ".js", JsFile),
+	name(JsFilePath, JsFile),
+	% Open file
+	open(JsFilePath, write, Stream),
+	% Init file
+	write(Stream, '$(document).ready(function() {'), nl(Stream),
+	write(Stream, 'var width = $(document).width();'), nl(Stream),
+	write(Stream, 'var height = $(document).height();'), nl(Stream),
+	write(Stream, 'var g = new Graph();'), nl(Stream),
+	% Get graph edges
+	edges(Graph, Edges),
+	dump_js_graph(Edges, Stream),
+	% End file
+	write(Stream, 'var layouter = new Graph.Layout.Spring(g);'), nl(Stream),	
+	write(Stream, 'var renderer = new Graph.Renderer.Raphael("canvas", g, width, height);'), nl(Stream),	
+	write(Stream, '});'),
+	% Close file
+	close(Stream),
+	!.
+% In case of fail, we cannot continue cause JS is needed for the graph
+create_graph_js(_, _, _) :-
+	write('Error: cannot create the JS file. '),
+	writeln('Please, check you have got the right permissions.'),
+	fail.
+	
+% Predicate to dump the complete graph into the JS file
+dump_js_graph([], _).
+dump_js_graph([V1-V2|Xs], Stream) :-
+		write(Stream, 'g.addEdge("'),
+		write(Stream, V1),
+		write(Stream, '" , "'),
+		write(Stream, V2),
+		write(Stream, '");'),
+		nl(Stream),
+		!,
+		dump_js_graph(Xs, Stream).
+% Continue dump althought one step fails
+dump_js_graph([_|Xs], Stream) :-
+		dump_js_graph(Xs, Stream),!.
 
-%----------------%
-% META FUNCTIONS %
-%----------------%
+%-----------------%
+% META PREDICATES %
+%-----------------%
 
 % Get all meta elems in the given HTML (list form)
 get_all_meta_list(DOM, List) :-
@@ -174,9 +219,9 @@ get_all_content_meta([M|MetaTags], [X:Y|CMetas]) :-
 get_all_content_meta([_|MetaTags], CMetas) :-
 	get_all_content_meta(MetaTags, CMetas).
 
-%----------------%
-% HTML FUNCTIONS %
-%----------------%
+%-----------------%
+% HTML PREDICATES %
+%-----------------%
 
 % Load an HTML given its URL. At the moment only HTTP connections work properly.
 % SSL support will be added later (if possible).
@@ -550,9 +595,9 @@ not_headed_node([N-[]|_], N).
 not_headed_node([_|Xs], N) :-
 	not_headed_node(Xs, N).
 
-%--------------------------%
-% FILES & FOLDER FUNCTIONS %
-%--------------------------%
+%---------------------------%
+% FILES & FOLDER PREDICATES %
+%---------------------------%
 
 % Predicate to copy one file to another. It will be used to
 % auto copy the CSS file to every output folder
@@ -638,55 +683,10 @@ generate_js_files(_) :-
 	write('Error: cannot create the JS folder. '),
 	writeln('Please, check you have got the right permissions.'),
 	fail.
-	
-% Predicate to init the JS file for the graph
-create_graph_js(Graph, Folder, FileName) :-
-	% Compose JS file path
-	append(Folder,"/js/",F1),
-	append(F1, FileName, F2),
-	append(F2, ".js", JsFile),
-	name(JsFilePath, JsFile),
-	% Open file
-	open(JsFilePath, write, Stream),
-	% Init file
-	write(Stream, '$(document).ready(function() {'), nl(Stream),
-	write(Stream, 'var width = $(document).width();'), nl(Stream),
-	write(Stream, 'var height = $(document).height();'), nl(Stream),
-	write(Stream, 'var g = new Graph();'), nl(Stream),
-	% Get graph edges
-	edges(Graph, Edges),
-	dump_js_graph(Edges, Stream),
-	% End file
-	write(Stream, 'var layouter = new Graph.Layout.Spring(g);'), nl(Stream),	
-	write(Stream, 'var renderer = new Graph.Renderer.Raphael("canvas", g, width, height);'), nl(Stream),	
-	write(Stream, '});'),
-	% Close file
-	close(Stream),
-	!.
-% In case of fail, we cannot continue cause JS is needed for the graph
-create_graph_js(_, _, _) :-
-	write('Error: cannot create the JS file. '),
-	writeln('Please, check you have got the right permissions.'),
-	fail.
-	
-% Predicate to dump the complete graph into the JS file
-dump_js_graph([], _).
-dump_js_graph([V1-V2|Xs], Stream) :-
-		write(Stream, 'g.addEdge("'),
-		write(Stream, V1),
-		write(Stream, '" , "'),
-		write(Stream, V2),
-		write(Stream, '");'),
-		nl(Stream),
-		!,
-		dump_js_graph(Xs, Stream).
-% Continue dump althought one step fails
-dump_js_graph([_|Xs], Stream) :-
-		dump_js_graph(Xs, Stream),!.
 
-%------------------%
-% GRAPHS FUNCTIONS %
-%------------------%
+%-------------------%
+% GRAPHS PREDICATES %
+%-------------------%
 
 % Generate a graph in depth with the given params. The entries
 % will be reduced to host name. This graph will be used to show
