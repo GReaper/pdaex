@@ -118,17 +118,17 @@ filter_url(URL, Starts, Contains, Ends) :-
 	startsWith(URL, Starts),
 	containsPattern(URL, Contains),
 	endsWith(URL, Ends).
-	
+
 % Filter retrieved links with the given patterns
 get_filtered_links([], _, _, _, _, []).
-get_filtered_links([X|CheckLinks], TakenLinks, Starts, Contains, Ends, [X|Ys]) :- 
+get_filtered_links([X|CheckLinks], TakenLinks, Starts, Contains, Ends, [X|Ys]) :-
 	\+member(X, TakenLinks),
     filter_url(X, Starts, Contains, Ends),!,
 	append(TakenLinks, [X], NewTaken),
 	get_filtered_links(CheckLinks, NewTaken, Starts, Contains, Ends, Ys).
-get_filtered_links([_|CheckLinks], TakenLinks, Starts, Contains, Ends, NewLinks) :- 
+get_filtered_links([_|CheckLinks], TakenLinks, Starts, Contains, Ends, NewLinks) :-
 	get_filtered_links(CheckLinks, TakenLinks, Starts, Contains, Ends, NewLinks).
-	
+
 %----------------%
 % CSS PREDICATES %
 %----------------%
@@ -183,7 +183,7 @@ init_graph_js(_, _, _) :-
 	write('Error: cannot create the JS file. '),
 	writeln('Please, check you have got the right permissions.'),
 	fail.
-	
+
 % Predicate to generate one graph head
 head_graph_js(Stream, Name) :-
 	name(Name, N),
@@ -203,7 +203,7 @@ head_graph_js(_, _) :-
 	write('Error: cannot create the graph head. '),
 	writeln('Please, check you have got the right permissions.'),
 	fail.
-	
+
 % Predicate to generate one graph ending
 ending_graph_js(Stream, Name) :-
 	name(Name, N),
@@ -229,7 +229,7 @@ ending_graph_js(_, _) :-
 	write('Error: cannot create the graph ending. '),
 	writeln('Please, check you have got the right permissions.'),
 	fail.
-	
+
 % Predicate to close the JS file for the graph
 close_graph_js(Stream) :-
 	write(Stream, '});'),
@@ -241,7 +241,7 @@ close_graph_js(_) :-
 	write('Error: cannot create the JS file. '),
 	writeln('Please, check you have got the right permissions.'),
 	fail.
-	
+
 % Predicate to dump the complete graph into the JS file
 full_js_graph([], _, _).
 full_js_graph([V1-V2|Xs], Stream, Name) :-
@@ -260,7 +260,7 @@ full_js_graph([V1-V2|Xs], Stream, Name) :-
 % Continue dump althought one step fails
 full_js_graph([_|Xs], Stream, Name) :-
 		full_js_graph(Xs, Stream, Name),!.
-		
+
 % Predicate to dump one graph section into the JS file
 partial_js_graph(_, [], _, _).
 partial_js_graph(Root, [X|Xs], Stream, Name) :-
@@ -365,7 +365,7 @@ html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) :-
 	print_html(Stream,Tokens),
 	close(Stream).
 
-% Predicate to generate the HTML structure to be dumped	 
+% Predicate to generate the HTML structure to be dumped
 html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
 		page([title([Title]),
 			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')]),
@@ -442,7 +442,7 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                      |\dump_complete_graph(CompleteGraph, CompleteGraph, 1)
                      ])
              ]).
-			 
+
 % This predicate creates an HTML output document and dumps
 % the hosts graph
 html_create_graph_document(URI,Title,Graph,Folder) :-
@@ -462,10 +462,10 @@ html_graph_structure(Title,Graph,Folder) -->
 			script([type('text/javascript'),src('js/dracula_algorithms.js')],''),
 			script([type('text/javascript'),src('js/index.js')],'')
 			],
-			[ 
+			[
 			   \dump_graph_to_html(Title,Graph,Folder)
             ]).
-			
+
 % Predicate to dump the graph HTML content
 dump_graph_to_html(Title,Graph,Folder) -->
 	{vertices(Graph, V),
@@ -473,7 +473,7 @@ dump_graph_to_html(Title,Graph,Folder) -->
 	% Check if the complete graph is small enought
 	L < 20, !},
 	dump_one_graph(Title,Graph,Folder).
-	
+
 dump_graph_to_html(_,Graph,Folder) -->
 	{
 		init_graph_js(Folder, "index", Stream)
@@ -483,7 +483,7 @@ dump_graph_to_html(_,Graph,Folder) -->
 		close_graph_js(Stream),
 		!
 	}.
-	
+
 dump_graph_to_html(_,_,_) -->
 	{writeln('Error: graph has not been created. Aborting execution.')},
 	[].
@@ -507,14 +507,14 @@ dump_one_graph(Title,Graph,Folder) -->
 	]).
 dump_one_graph(_,_,_) --> [].
 
-% Generate multiple graphs JS	
+% Generate multiple graphs JS
 dump_multiple_graphs([],_,_) --> [].
 
 % Don't dump empty roots
 dump_multiple_graphs([_-[]|Xs],Stream,Name) -->
 	{!},
 	dump_multiple_graphs(Xs,Stream,Name).
-	
+
 dump_multiple_graphs([Root-Nodes|Xs],Stream,Name) -->
 	{
 		head_graph_js(Stream, Name),
@@ -539,7 +539,7 @@ dump_multiple_graphs([Root-Nodes|Xs],Stream,Name) -->
 		div([id(CanvasName),class('g_canvas')],'')
 	]),
 	dump_multiple_graphs(Xs,Stream,NextName).
-	
+
 dump_multiple_graphs([_|Xs],Stream,Name) -->
 	{!},
 	dump_multiple_graphs(Xs,Stream,Name).
@@ -648,9 +648,9 @@ dump_complete_graph([Ver-Neigh|Xs], Graph, External) -->
 % Continue dump althought one step fails
 dump_complete_graph([_|Xs], Graph, External) -->
 		dump_complete_graph(Xs, Graph, External),!.
-		
+
 % Aux. predicate to dump every link neighbour. "External" param will be used to
-% write or not external links. 
+% write or not external links.
 generate_link_neigh([], _, _) -->
 		[].
 generate_link_neigh([N|Xs], Graph, External) -->
@@ -740,7 +740,7 @@ create_dump_folder(_, _) :-
 	write('Error: cannot create the output folder. '),
 	writeln('Please, check you have got the right permissions.'),
 	fail.
-	
+
 % Predicate to create the ouput folder (finding crawler)
 f_create_dump_folder(Folder) :-
 	get_time(TimeStamp),
@@ -762,13 +762,13 @@ f_create_dump_folder(Folder) :-
 	append(A8, "-", A9),
 	name(Sec, Seconds),
 	append(A9, Seconds, Folder),
-	make_directory(Folder)
+	make_directory(Folder),
 	!.
 f_create_dump_folder(_) :-
 	write('Error: cannot create the output folder. '),
 	writeln('Please, check you have got the right permissions.'),
 	fail.
-	
+
 % Predicate to copy the CSS files to the ouput folder
 generate_css_file(Folder) :-
 	append(Folder,"/css",CssDirectory),
@@ -779,7 +779,7 @@ generate_css_file(Folder) :-
 generate_css_file(_) :-
 	write('Warning: cannot create the css folder. '),
 	writeln('Please, check you have got the right permissions.').
-	
+
 % Predicate to copy the JS files to the ouput folder
 generate_js_files(Folder) :-
 	append(Folder,"/js",JsDirectory),
@@ -1101,7 +1101,7 @@ f_process_main_url(URL, 0, Starts, Contains, Ends) :-
 	% Get only filtered links
 	get_filtered_links(LinkList, [], Starts, Contains, Ends, FilteredLinks),
 	% DEBUG: write retrieved data
-	write('Filtered links ->'),writeln(FilteredLinks),nl.
+	write('Filtered links ->'),writeln(FilteredLinks),nl,
 	% HTML output dumping
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
@@ -1196,7 +1196,7 @@ f_evaluate_level([L|Ls], N, VisitedLinks, Starts, Contains, Ends, FLinks, NFLink
 	      (
 		      f_evaluate_level(Ls, N, VisitedLinks, Starts, Contains, Ends, FLinks, NFLinks))
 	      ).
-		  
+
 %----------------------%
 %  TESTING PREDICATES  %
 %----------------------%
