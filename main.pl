@@ -120,8 +120,15 @@ filter_url(URL, Starts, Contains, Ends) :-
 	endsWith(URL, Ends).
 	
 % Filter retrieved links with the given patterns
-
-
+get_filtered_links([], _, _, _, _, []).
+get_filtered_links([X|CheckLinks], TakenLinks, Starts, Contains, Ends, [X|Ys]) :- 
+	\+member(X, TakenLinks),
+    filter_url(X, Starts, Contains, Ends),!,
+	append(TakenLinks, [X], NewTaken),
+	get_filtered_links(CheckLinks, NewTaken, Starts, Contains, Ends, Ys).
+get_filtered_links([_|CheckLinks], TakenLinks, Starts, Contains, Ends, NewLinks) :- 
+	get_filtered_links(CheckLinks, TakenLinks, Starts, Contains, Ends, NewLinks).
+	
 %----------------%
 % CSS PREDICATES %
 %----------------%
@@ -1043,7 +1050,7 @@ evaluate_level([L|Ls], N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Fold
 
 % Predicate to process the base URL. We need this to apply some
 % changes to main URL and create the data dump folder
-f_process_main_url(URL, 0) :-
+f_process_main_url(URL, 0, Starts, Contains, Ends) :-
 	!,
 	% Create results folder
 	%create_dump_folder(Folder, _),
@@ -1055,15 +1062,18 @@ f_process_main_url(URL, 0) :-
 	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
+	% Get only filtered links
+	get_filtered_links(LinkList, [], Starts, Contains, Ends, FilteredLinks),
 	% DEBUG: write retrieved data
-	write('All links ->'),writeln(LinkList),nl.
+	% write('All links ->'),writeln(LinkList),nl.
+	write('Filtered links ->'),writeln(FilteredLinks),nl.
 	% HTML output dumping
     %append(Folder,"/",Directory),
 	%append(Directory,"index.html",DirectoryURI),
 	%name(URI,DirectoryURI),
 	%html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph).
 
-f_process_main_url(URL, N) :-
+f_process_main_url(URL, N, Starts, Contains, Ends) :-
 	% Create results folder
 	%create_dump_folder(Folder),
 	% Copy css file to results folder
@@ -1074,17 +1084,18 @@ f_process_main_url(URL, N) :-
 	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
+	% Get only filtered links
+	get_filtered_links(LinkList, [], Starts, Contains, Ends, FilteredLinks),
 	% Get only valid links to process (HTTP)
 	get_valid_links(LinkList, [], ValidLinks),
 	% Calculate visited links (or being visited)
 	append(ValidLinks, [URL], VisitedLinks),
-	% DEBUG: write retrieved data
-	%write('All links ->'),writeln(LinkList),nl,
-	%write('Valid links ->'),writeln(ValidLinks),nl,
 	% Reduce exploring depth
 	M is N-1,
 	% Evaluate other levels
-	f_evaluate_level(ValidLinks, M, VisitedLinks),
+	f_evaluate_level(ValidLinks, M, VisitedLinks, Starts, Contains, Ends, FilteredLinks, NewFiltered),
+	% DEBUG: write retrieved data
+	write('Filtered links ->'),writeln(NewFiltered),nl,
 	% HTML output dumping
     %append(Folder,"/",Directory),
 	%append(Directory,"index.html",DirectoryURI),
@@ -1095,7 +1106,7 @@ f_process_main_url(URL, N) :-
 % Process URL with no depth (only base URL)
 % In this case we only take all HTML info without
 % making the depth graph (only basic one)
-f_process_url(URL, 0, VisitedLinks, VisitedLinks) :-
+f_process_url(URL, 0, VisitedLinks, VisitedLinks, Starts, Contains, Ends, FLinks, NFLinks) :-
 	% Don't try more
 	!,
 	% Write process info
@@ -1104,18 +1115,22 @@ f_process_url(URL, 0, VisitedLinks, VisitedLinks) :-
 	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
+	% Get only filtered links
+	get_filtered_links(LinkList, FLinks, Starts, Contains, Ends, NFLinks),
 	% DEBUG: write retrieved data
 	write('All links ->'),writeln(LinkList),nl.
 
 % Process and URL with depth > 1. In this case we must build
 % the links graph and explore the new websites
-f_process_url(URL, N, VisitedLinks, NewVisitedLinks) :-
+f_process_url(URL, N, VisitedLinks, NewVisitedLinks, Starts, Contains, Ends, FLinks, NFLinks) :-
 	% Write process info
 	write('Processing ('),write(N),write('): '),writeln(URL),
     % Get URL HTML as DOM structure
 	cleanly_load_html(URL, DOM),
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
+	% Get only filtered links
+	get_filtered_links(LinkList, FLinks, Starts, Contains, Ends, AuxFLinks),
 	% Get only valid links to process (HTTP)
 	get_valid_links(LinkList, VisitedLinks, ValidLinks),
 	% Recalculate visited links (althought they haven't been visited yet)
@@ -1125,25 +1140,26 @@ f_process_url(URL, N, VisitedLinks, NewVisitedLinks) :-
 	% Reduce exploring depth
 	M is N-1,
 	% Evaluate other levels
-	f_evaluate_level(ValidLinks, M, NewVisitedLinks),
+	f_evaluate_level(ValidLinks, M, NewVisitedLinks, Starts, Contains, Ends, AuxFLinks, NFLinks),
 	!.
 
 % Evaluate remaining levels. We must take care of timeout or redirects
 % to HTTPS, so we will take all exceptions and avoid processing the
 % associated webs
-f_evaluate_level([], _ , _).
-f_evaluate_level([L|Ls], N, VisitedLinks) :-
+f_evaluate_level([], _ , _, _, _, _, _, _).
+f_evaluate_level([L|Ls], N, VisitedLinks, Starts, Contains, Ends, FLinks, NFLinks) :-
 	catch(
 	      % Try section
 	      (
-	          f_process_url(L, N, VisitedLinks, NewVisitedLinks),
-			  f_evaluate_level(Ls, N, NewVisitedLinks)
+	          f_process_url(L, N, VisitedLinks, NewVisitedLinks, Starts, Contains, Ends, FLinks, AuxLinks),
+			  append(FLinks, AuxLinks, LevelFLinks),
+			  f_evaluate_level(Ls, N, NewVisitedLinks, Starts, Contains, Ends, LevelFLinks, NFLinks)
 	      ),
 	      % Exception taking
 	      _,
 	      % Catch section
 	      (
-		      f_evaluate_level(Ls, N, VisitedLinks))
+		      f_evaluate_level(Ls, N, VisitedLinks, Starts, Contains, Ends, FLinks, NFLinks))
 	      ).
 		  
 %----------------------%
@@ -1193,4 +1209,4 @@ test10(D) :- process_main_url('http://www.fdi.ucm.es/',D,_,_).
 genTest(URL, Depth) :- process_main_url(URL, Depth, _, _).
 
 % Initial test for finding crawler
-test11(D) :- f_process_main_url('http://www.fdi.ucm.es/',D).
+test11(D, Starts, Contains, Ends) :- f_process_main_url('http://www.fdi.ucm.es/',D,Starts,Contains,Ends).
