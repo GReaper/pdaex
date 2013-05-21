@@ -350,7 +350,15 @@ cleanly_load_html(URL,DOM) :-
 cleanly_load_html(_,[]).
 
 % This predicate creates an HTML output document and dumps
-% all retrieved data
+% all retrieved data (finding crawler)
+f_html_create_document(URI,Title,Starts,Contains,Ends,Links) :-
+	phrase(f_html_structure(Title,Starts,Contains,Ends,Links), Tokens),
+	open(URI, write, Stream),
+	print_html(Stream,Tokens),
+	close(Stream).
+
+% This predicate creates an HTML output document and dumps
+% all retrieved data (retrieving crawler)
 html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) :-
 	phrase(html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph), Tokens),
 	open(URI, write, Stream),
@@ -702,7 +710,7 @@ copy(File1, File2) :-
 % can continue running without problems.
 copy(_, _).
 
-% Predicate to create the ouput folder
+% Predicate to create the ouput folder (scanning crawler)
 create_dump_folder(Folder, ContentFolder) :-
 	get_time(TimeStamp),
 	stamp_date_time(TimeStamp,LocalDate,local),
@@ -732,7 +740,35 @@ create_dump_folder(_, _) :-
 	write('Error: cannot create the output folder. '),
 	writeln('Please, check you have got the right permissions.'),
 	fail.
-
+	
+% Predicate to create the ouput folder (finding crawler)
+f_create_dump_folder(Folder) :-
+	get_time(TimeStamp),
+	stamp_date_time(TimeStamp,LocalDate,local),
+	LocalDate = date(Y, M, D, H, Min, Sec, _, _, _),
+	name(Y, Year),
+	append(Year, "-", A1),
+	name(M, Month),
+	append(A1, Month, A2),
+	append(A2, "-", A3),
+	name(D, Day),
+	append(A3, Day, A4),
+	append(A4, " ", A5),
+	name(H, Hour),
+	append(A5, Hour, A6),
+	append(A6, "-", A7),
+	name(Min, Minutes),
+	append(A7, Minutes, A8),
+	append(A8, "-", A9),
+	name(Sec, Seconds),
+	append(A9, Seconds, Folder),
+	make_directory(Folder)
+	!.
+f_create_dump_folder(_) :-
+	write('Error: cannot create the output folder. '),
+	writeln('Please, check you have got the right permissions.'),
+	fail.
+	
 % Predicate to copy the CSS files to the ouput folder
 generate_css_file(Folder) :-
 	append(Folder,"/css",CssDirectory),
@@ -1053,9 +1089,9 @@ evaluate_level([L|Ls], N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Fold
 f_process_main_url(URL, 0, Starts, Contains, Ends) :-
 	!,
 	% Create results folder
-	%create_dump_folder(Folder, _),
+	f_create_dump_folder(Folder),
 	% Copy css file to results folder
-	%generate_css_file(Folder),
+	generate_css_file(Folder),
 	% Write process info
 	write('Processing main (0): '),writeln(URL),
 	% Get URL HTML as DOM structure
@@ -1067,16 +1103,16 @@ f_process_main_url(URL, 0, Starts, Contains, Ends) :-
 	% DEBUG: write retrieved data
 	write('Filtered links ->'),writeln(FilteredLinks),nl.
 	% HTML output dumping
-    %append(Folder,"/",Directory),
-	%append(Directory,"index.html",DirectoryURI),
-	%name(URI,DirectoryURI),
-	%html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph).
+    append(Folder,"/",Directory),
+	append(Directory,"index.html",DirectoryURI),
+	name(URI,DirectoryURI),
+	f_html_create_document(URI,URL,Starts,Contains,Ends,FilteredLinks).
 
 f_process_main_url(URL, N, Starts, Contains, Ends) :-
 	% Create results folder
-	%create_dump_folder(Folder),
+	f_create_dump_folder(Folder),
 	% Copy css file to results folder
-	%generate_css_file(Folder),
+	generate_css_file(Folder),
 	% Write process info
 	write('Processing main ('),write(N),write('): '),writeln(URL),
     % Get URL HTML as DOM structure
@@ -1096,10 +1132,10 @@ f_process_main_url(URL, N, Starts, Contains, Ends) :-
 	% DEBUG: write retrieved data
 	write('Filtered links ->'),writeln(NewFiltered),nl,
 	% HTML output dumping
-    %append(Folder,"/",Directory),
-	%append(Directory,"index.html",DirectoryURI),
-	%name(URI,DirectoryURI),
-	%html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
+    append(Folder,"/",Directory),
+	append(Directory,"index.html",DirectoryURI),
+	name(URI,DirectoryURI),
+	f_html_create_document(URI,URL,Starts,Contains,Ends,NewFiltered),
 	!.
 
 % Process URL with no depth (only base URL)
