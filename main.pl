@@ -1022,6 +1022,115 @@ evaluate_level([L|Ls], N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Fold
 		  evaluate_level(Ls, N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks))
 	      ).
 
+%------------------------%
+%  DATA FINDING CRAWLER  %
+%------------------------%
+
+% Predicate to process the base URL. We need this to apply some
+% changes to main URL and create the data dump folder
+f_process_main_url(URL, 0) :-
+	!,
+	% Create results folder
+	%create_dump_folder(Folder, _),
+	% Copy css file to results folder
+	%generate_css_file(Folder),
+	% Write process info
+	write('Processing main (0): '),writeln(URL),
+	% Get URL HTML as DOM structure
+	cleanly_load_html(URL, DOM),
+	% Get all link labels from DOM (list form)
+	get_link_list(DOM, LinkList),
+	% DEBUG: write retrieved data
+	write('All links ->'),writeln(LinkList),nl.
+	% HTML output dumping
+    %append(Folder,"/",Directory),
+	%append(Directory,"index.html",DirectoryURI),
+	%name(URI,DirectoryURI),
+	%html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph).
+
+f_process_main_url(URL, N) :-
+	% Create results folder
+	%create_dump_folder(Folder),
+	% Copy css file to results folder
+	%generate_css_file(Folder),
+	% Write process info
+	write('Processing main ('),write(N),write('): '),writeln(URL),
+    % Get URL HTML as DOM structure
+	cleanly_load_html(URL, DOM),
+	% Get all link labels from DOM (list form)
+	get_link_list(DOM, LinkList),
+	% Get only valid links to process (HTTP)
+	get_valid_links(LinkList, [], ValidLinks),
+	% Calculate visited links (or being visited)
+	append(ValidLinks, [URL], VisitedLinks),
+	% DEBUG: write retrieved data
+	%write('All links ->'),writeln(LinkList),nl,
+	%write('Valid links ->'),writeln(ValidLinks),nl,
+	% Reduce exploring depth
+	M is N-1,
+	% Evaluate other levels
+	f_evaluate_level(ValidLinks, M, VisitedLinks),
+	% HTML output dumping
+    %append(Folder,"/",Directory),
+	%append(Directory,"index.html",DirectoryURI),
+	%name(URI,DirectoryURI),
+	%html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
+	!.
+
+% Process URL with no depth (only base URL)
+% In this case we only take all HTML info without
+% making the depth graph (only basic one)
+f_process_url(URL, 0, Folder, VisitedLinks, VisitedLinks) :-
+	% Don't try more
+	!,
+	% Write process info
+	write('Processing (0): '),writeln(URL),
+	% Get URL HTML as DOM structure
+	cleanly_load_html(URL, DOM),
+	% Get all link labels from DOM (list form)
+	get_link_list(DOM, LinkList),
+	% DEBUG: write retrieved data
+	%write('All links ->'),writeln(LinkList),nl.
+
+% Process and URL with depth > 1. In this case we must build
+% the links graph and explore the new websites
+f_process_url(URL, N, Folder, VisitedLinks, NewVisitedLinks) :-
+	% Write process info
+	write('Processing ('),write(N),write('): '),writeln(URL),
+    % Get URL HTML as DOM structure
+	cleanly_load_html(URL, DOM),
+	% Get all link labels from DOM (list form)
+	get_link_list(DOM, LinkList),
+	% Get only valid links to process (HTTP)
+	get_valid_links(LinkList, VisitedLinks, ValidLinks),
+	% Recalculate visited links (althought they haven't been visited yet)
+	append(VisitedLinks, ValidLinks, NewVisitedLinks),
+	% DEBUG: write retrieved data
+	%write('All links ->'),writeln(LinkList),nl,
+	% Reduce exploring depth
+	M is N-1,
+	% Evaluate other levels
+	f_evaluate_level(ValidLinks, M, Folder, NewVisitedLinks),
+	!.
+
+% Evaluate remaining levels. We must take care of timeout or redirects
+% to HTTPS, so we will take all exceptions and avoid processing the
+% associated webs
+f_evaluate_level([], _ , _, _).
+f_evaluate_level([L|Ls], N, Folder, VisitedLinks) :-
+	catch(
+	      % Try section
+	      (
+	          f_process_url(L, N, Folder, VisitedLinks, NewVisitedLinks),
+			  f_evaluate_level(Ls, N, Folder, NewVisitedLinks)
+	      ),
+	      % Exception taking
+	      _,
+	      % Catch section
+	      (
+		      f_evaluate_level(Ls, N, Folder, VisitedLinks))
+	      ).
+		  
 %----------------------%
 %  TESTING PREDICATES  %
 %----------------------%
