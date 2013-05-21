@@ -10,6 +10,12 @@
 % Test wither an URL ends with the given pattern
 endsWith(URL, Pattern) :- sub_string(URL,_,_,0,Pattern).
 
+% Test whether an URL starts with the given pattern
+startsWith(URL, Pattern) :- sub_string(URL,0,_,_,Pattern).
+
+% Test whether an URL contains the given pattern
+containsPattern(URL, Pattern) :- sub_string(URL, _, _, _, Pattern).
+
 % Test whether an URL starts with 'http://'
 startsWithHttp(URL) :- sub_string(URL,0,_,_,'http://').
 
@@ -106,6 +112,15 @@ get_valid_links([X|Xs], VisitedLinks, [X|Ys]) :-
 	get_valid_links(Xs, NewVisitedLinks, Ys).
 get_valid_links([_|Xs], VisitedLinks, Ys) :-
 	get_valid_links(Xs, VisitedLinks, Ys).
+
+% This predicate tests if the given URL passes all user filters
+filter_url(URL, Starts, Contains, Ends) :-
+	startsWith(URL, Starts),
+	containsPattern(URL, Contains),
+	endsWith(URL, Ends).
+	
+% Filter retrieved links with the given patterns
+
 
 %----------------%
 % CSS PREDICATES %
@@ -1080,7 +1095,7 @@ f_process_main_url(URL, N) :-
 % Process URL with no depth (only base URL)
 % In this case we only take all HTML info without
 % making the depth graph (only basic one)
-f_process_url(URL, 0, Folder, VisitedLinks, VisitedLinks) :-
+f_process_url(URL, 0, VisitedLinks, VisitedLinks) :-
 	% Don't try more
 	!,
 	% Write process info
@@ -1090,11 +1105,11 @@ f_process_url(URL, 0, Folder, VisitedLinks, VisitedLinks) :-
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% DEBUG: write retrieved data
-	%write('All links ->'),writeln(LinkList),nl.
+	write('All links ->'),writeln(LinkList),nl.
 
 % Process and URL with depth > 1. In this case we must build
 % the links graph and explore the new websites
-f_process_url(URL, N, Folder, VisitedLinks, NewVisitedLinks) :-
+f_process_url(URL, N, VisitedLinks, NewVisitedLinks) :-
 	% Write process info
 	write('Processing ('),write(N),write('): '),writeln(URL),
     % Get URL HTML as DOM structure
@@ -1110,25 +1125,25 @@ f_process_url(URL, N, Folder, VisitedLinks, NewVisitedLinks) :-
 	% Reduce exploring depth
 	M is N-1,
 	% Evaluate other levels
-	f_evaluate_level(ValidLinks, M, Folder, NewVisitedLinks),
+	f_evaluate_level(ValidLinks, M, NewVisitedLinks),
 	!.
 
 % Evaluate remaining levels. We must take care of timeout or redirects
 % to HTTPS, so we will take all exceptions and avoid processing the
 % associated webs
-f_evaluate_level([], _ , _, _).
-f_evaluate_level([L|Ls], N, Folder, VisitedLinks) :-
+f_evaluate_level([], _ , _).
+f_evaluate_level([L|Ls], N, VisitedLinks) :-
 	catch(
 	      % Try section
 	      (
-	          f_process_url(L, N, Folder, VisitedLinks, NewVisitedLinks),
-			  f_evaluate_level(Ls, N, Folder, NewVisitedLinks)
+	          f_process_url(L, N, VisitedLinks, NewVisitedLinks),
+			  f_evaluate_level(Ls, N, NewVisitedLinks)
 	      ),
 	      % Exception taking
 	      _,
 	      % Catch section
 	      (
-		      f_evaluate_level(Ls, N, Folder, VisitedLinks))
+		      f_evaluate_level(Ls, N, VisitedLinks))
 	      ).
 		  
 %----------------------%
@@ -1176,3 +1191,6 @@ test10(D) :- process_main_url('http://www.fdi.ucm.es/',D,_,_).
 
 % General predicate test
 genTest(URL, Depth) :- process_main_url(URL, Depth, _, _).
+
+% Initial test for finding crawler
+test11(D) :- f_process_main_url('http://www.fdi.ucm.es/',D).
