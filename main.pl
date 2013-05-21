@@ -1065,7 +1065,6 @@ f_process_main_url(URL, 0, Starts, Contains, Ends) :-
 	% Get only filtered links
 	get_filtered_links(LinkList, [], Starts, Contains, Ends, FilteredLinks),
 	% DEBUG: write retrieved data
-	% write('All links ->'),writeln(LinkList),nl.
 	write('Filtered links ->'),writeln(FilteredLinks),nl.
 	% HTML output dumping
     %append(Folder,"/",Directory),
@@ -1118,7 +1117,7 @@ f_process_url(URL, 0, VisitedLinks, VisitedLinks, Starts, Contains, Ends, FLinks
 	% Get only filtered links
 	get_filtered_links(LinkList, FLinks, Starts, Contains, Ends, NFLinks),
 	% DEBUG: write retrieved data
-	write('All links ->'),writeln(LinkList),nl.
+	write('Filtered links ->'),writeln(NFLinks),nl.
 
 % Process and URL with depth > 1. In this case we must build
 % the links graph and explore the new websites
@@ -1135,18 +1134,18 @@ f_process_url(URL, N, VisitedLinks, NewVisitedLinks, Starts, Contains, Ends, FLi
 	get_valid_links(LinkList, VisitedLinks, ValidLinks),
 	% Recalculate visited links (althought they haven't been visited yet)
 	append(VisitedLinks, ValidLinks, NewVisitedLinks),
-	% DEBUG: write retrieved data
-	%write('All links ->'),writeln(LinkList),nl,
 	% Reduce exploring depth
 	M is N-1,
 	% Evaluate other levels
 	f_evaluate_level(ValidLinks, M, NewVisitedLinks, Starts, Contains, Ends, AuxFLinks, NFLinks),
+	% DEBUG: write retrieved data
+	write('Filtered links ->'),writeln(NFLinks),nl,
 	!.
 
 % Evaluate remaining levels. We must take care of timeout or redirects
 % to HTTPS, so we will take all exceptions and avoid processing the
 % associated webs
-f_evaluate_level([], _ , _, _, _, _, _, _).
+f_evaluate_level([], _ , _, _, _, _, Links, Links).
 f_evaluate_level([L|Ls], N, VisitedLinks, Starts, Contains, Ends, FLinks, NFLinks) :-
 	catch(
 	      % Try section
