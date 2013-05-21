@@ -351,11 +351,62 @@ cleanly_load_html(_,[]).
 
 % This predicate creates an HTML output document and dumps
 % all retrieved data (finding crawler)
-f_html_create_document(URI,Title,Starts,Contains,Ends,Links) :-
-	phrase(f_html_structure(Title,Starts,Contains,Ends,Links), Tokens),
+f_html_create_document(URI,Title,Starts,Contains,Ends,Links,Deph) :-
+	phrase(f_html_structure(Title,Starts,Contains,Ends,Links,Depth), Tokens),
 	open(URI, write, Stream),
 	print_html(Stream,Tokens),
 	close(Stream).
+
+% Predicate to generate the HTML structure to be dumped
+f_html_structure(Title,Starts,Contains,Ends,Links) -->
+		page([title(['URL filter']),
+			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')]),
+			link([rel('stylesheet'),type('text/css'),href('css/main.css')])
+			],
+			[ h2(align(center),
+                        [Title]
+		       ),
+               table([ align(center),
+                       width('100%')
+                     ],
+                     [ tr([ th([colspan(2)],
+						'Filters'
+						)
+                          ]),
+				       tr([ td([width('50%')],
+					       'Root URL:'),
+					    	td([width('50%')],
+					       Title)
+		                          ]),
+				       tr([ td([width('50%')],
+					       'Depth:'),
+					    	td([width('50%')],
+					       Depth)
+		                          ]),
+				       tr([ td([width('50%')],
+					       'URLs starting with:'),
+					    	td([width('50%')],
+					       Starts)
+		                          ]),
+				       tr([ td([width('50%')],
+					       'URLs containing:'),
+					    	td([width('50%')],
+					       Contains)
+		                          ]),
+				       tr([ td([width('50%')],
+					       'URLs ending with:'),
+					    	td([width('50%')],
+					       Ends)
+		                          ])
+                     ]),
+	        table([ align(center),
+                       width('100%')
+                     ],
+                     [ tr([ th('Retrieved links')
+                          ])
+                     |\create_linked_rows(Title, Links)
+                     ])
+             ]).
 
 % This predicate creates an HTML output document and dumps
 % all retrieved data (retrieving crawler)
@@ -1106,7 +1157,7 @@ f_process_main_url(URL, 0, Starts, Contains, Ends) :-
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
-	f_html_create_document(URI,URL,Starts,Contains,Ends,FilteredLinks).
+	f_html_create_document(URI,URL,Starts,Contains,Ends,FilteredLinks,0).
 
 f_process_main_url(URL, N, Starts, Contains, Ends) :-
 	% Create results folder
@@ -1135,7 +1186,7 @@ f_process_main_url(URL, N, Starts, Contains, Ends) :-
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
-	f_html_create_document(URI,URL,Starts,Contains,Ends,NewFiltered),
+	f_html_create_document(URI,URL,Starts,Contains,Ends,NewFiltered,N),
 	!.
 
 % Process URL with no depth (only base URL)
