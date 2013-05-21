@@ -351,14 +351,14 @@ cleanly_load_html(_,[]).
 
 % This predicate creates an HTML output document and dumps
 % all retrieved data (finding crawler)
-f_html_create_document(URI,Title,Starts,Contains,Ends,Links,Deph) :-
+f_html_create_document(URI,Title,Starts,Contains,Ends,Links,Depth) :-
 	phrase(f_html_structure(Title,Starts,Contains,Ends,Links,Depth), Tokens),
 	open(URI, write, Stream),
 	print_html(Stream,Tokens),
 	close(Stream).
 
 % Predicate to generate the HTML structure to be dumped
-f_html_structure(Title,Starts,Contains,Ends,Links) -->
+f_html_structure(Title,Starts,Contains,Ends,Links,Depth) -->
 		page([title(['URL filter']),
 			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')]),
 			link([rel('stylesheet'),type('text/css'),href('css/main.css')])
@@ -1152,7 +1152,7 @@ f_process_main_url(URL, 0, Starts, Contains, Ends) :-
 	% Get only filtered links
 	get_filtered_links(LinkList, [], Starts, Contains, Ends, FilteredLinks),
 	% DEBUG: write retrieved data
-	write('Filtered links ->'),writeln(FilteredLinks),nl,
+	%write('Filtered links ->'),writeln(FilteredLinks),nl,
 	% HTML output dumping
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
@@ -1181,7 +1181,7 @@ f_process_main_url(URL, N, Starts, Contains, Ends) :-
 	% Evaluate other levels
 	f_evaluate_level(ValidLinks, M, VisitedLinks, Starts, Contains, Ends, FilteredLinks, NewFiltered),
 	% DEBUG: write retrieved data
-	write('Filtered links ->'),writeln(NewFiltered),nl,
+	%write('Filtered links ->'),writeln(NewFiltered),nl,
 	% HTML output dumping
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
@@ -1202,9 +1202,9 @@ f_process_url(URL, 0, VisitedLinks, VisitedLinks, Starts, Contains, Ends, FLinks
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only filtered links
-	get_filtered_links(LinkList, FLinks, Starts, Contains, Ends, NFLinks),
+	get_filtered_links(LinkList, FLinks, Starts, Contains, Ends, NFLinks).
 	% DEBUG: write retrieved data
-	write('Filtered links ->'),writeln(NFLinks),nl.
+	%write('Filtered links ->'),writeln(NFLinks),nl.
 
 % Process and URL with depth > 1. In this case we must build
 % the links graph and explore the new websites
@@ -1226,7 +1226,7 @@ f_process_url(URL, N, VisitedLinks, NewVisitedLinks, Starts, Contains, Ends, FLi
 	% Evaluate other levels
 	f_evaluate_level(ValidLinks, M, NewVisitedLinks, Starts, Contains, Ends, AuxFLinks, NFLinks),
 	% DEBUG: write retrieved data
-	write('Filtered links ->'),writeln(NFLinks),nl,
+	%write('Filtered links ->'),writeln(NFLinks),nl,
 	!.
 
 % Evaluate remaining levels. We must take care of timeout or redirects
@@ -1293,6 +1293,9 @@ test10(D) :- process_main_url('http://www.fdi.ucm.es/',D,_,_).
 
 % General predicate test
 genTest(URL, Depth) :- process_main_url(URL, Depth, _, _).
+
+% General predicate test
+genTestF(URL, Depth, Starts, Contains, Ends) :- f_process_main_url(URL, Depth, Starts, Contains, Ends).
 
 % Initial test for finding crawler
 test11(D, Starts, Contains, Ends) :- f_process_main_url('http://www.fdi.ucm.es/',D,Starts,Contains,Ends).
