@@ -604,10 +604,10 @@ create_index -->
 	{name(CHTable,"#HostsTable")},
 	{name(CLTable,"#LinksTable")},
 		html([
-		tr([ td(
-				a([href('graph.html'),target('_blank')],'Hosts graph')
-			)
-		]),
+		%tr([ td(
+		%		a([href('graph.html'),target('_blank')],'Hosts graph')
+		%	)
+		%]),
 		tr([ td(
 				a([href(CCharset)],'Charset')
 			)
