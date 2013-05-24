@@ -1,13 +1,14 @@
 %Prueba con la funcion para el prompt
-test1(Prompt):-
+crawler(Prompt):-
 	read_history('history', 'help', [trace],Prompt, Goal,_).
-	expr(Goal).
+	parser_crawler(Goal).
 
-expr(Command) -->
-		term(T),
+parser_crawler(Goal) -->
+		hecho(Command),
 		{
-		}
-		
+		    Command=='search',test1
+		}.
+
 expr(E) -->
         term(T),
         contExpr(Op,T2),
