@@ -172,7 +172,7 @@ init_graph_js(Folder, FileName, Stream) :-
 	append(F2, ".js", JsFile),
 	name(JsFilePath, JsFile),
 	% Open file
-	open(JsFilePath, write, Stream),
+	open(JsFilePath, write, Stream, [encoding(utf8)]),
 	% Init file
 	cleanly_write(Stream, '$(document).ready(function() {'), nl(Stream),
 	cleanly_write(Stream, 'var width = $(window).width();'), nl(Stream),
@@ -498,7 +498,7 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
 % the hosts graph
 html_create_graph_document(URI,Title,Graph,Folder) :-
 	phrase(html_graph_structure(Title,Graph,Folder), Tokens),
-	open(URI, write, Stream),
+	open(URI, write, Stream, [encoding(utf8)]),
 	print_html(Stream,Tokens),
 	close(Stream).
 
@@ -767,8 +767,8 @@ dump_to_stream([_|Xs], Stream) :-
 % Predicate to copy one file to another. It will be used to
 % auto copy the CSS file to every output folder
 copy(File1, File2) :-
-	open(File1,read,Stream1),
-	open(File2,write,Stream2),
+	open(File1,read,Stream1, [encoding(utf8)]),
+	open(File2,write,Stream2, [encoding(utf8)]),
 	copy_stream_data(Stream1,Stream2),
 	close(Stream1),
 	close(Stream2),!.
