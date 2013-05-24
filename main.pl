@@ -174,9 +174,9 @@ init_graph_js(Folder, FileName, Stream) :-
 	% Open file
 	open(JsFilePath, write, Stream),
 	% Init file
-	write(Stream, '$(document).ready(function() {'), nl(Stream),
-	write(Stream, 'var width = $(window).width();'), nl(Stream),
-	write(Stream, 'var height = $(window).height();'), nl(Stream),
+	cleanly_write(Stream, '$(document).ready(function() {'), nl(Stream),
+	cleanly_write(Stream, 'var width = $(window).width();'), nl(Stream),
+	cleanly_write(Stream, 'var height = $(window).height();'), nl(Stream),
 	!.
 % In case of fail, we cannot continue cause JS is needed for the graph
 init_graph_js(_, _, _) :-
@@ -190,12 +190,12 @@ head_graph_js(Stream, Name) :-
 	append("var g", N, H1),
 	append(H1, " = new Graph();", H2),
 	name(GraphHead, H2),
-	write(Stream, GraphHead),
+	cleanly_write(Stream, GraphHead),
 	nl(Stream),
 	append("g", N, H3),
 	append(H3, ".edgeFactory.template.style.directed = true;", H4),
 	name(GraphDirected, H4),
-	write(Stream, GraphDirected),
+	cleanly_write(Stream, GraphDirected),
 	nl(Stream),
 	!.
 % In case of fail, we cannot continue cause JS is needed for the graph
@@ -212,7 +212,7 @@ ending_graph_js(Stream, Name) :-
 	append(E2, N, E3),
 	append(E3, ");", E4),
 	name(Layouter, E4),
-	write(Stream, Layouter),
+	cleanly_write(Stream, Layouter),
 	nl(Stream),
 	append("var renderer", N, E21),
 	append(E21, " = new Graph.Renderer.Raphael('canvas", E22),
@@ -221,7 +221,7 @@ ending_graph_js(Stream, Name) :-
 	append(E24, N, E25),
 	append(E25, ", width, height);", E26),
 	name(Renderer, E26),
-	write(Stream, Renderer),
+	cleanly_write(Stream, Renderer),
 	nl(Stream),
 	!.
 % In case of fail, we cannot continue cause JS is needed for the graph
@@ -232,7 +232,7 @@ ending_graph_js(_, _) :-
 
 % Predicate to close the JS file for the graph
 close_graph_js(Stream) :-
-	write(Stream, '});'),
+	cleanly_write(Stream, '});'),
 	% Close file
 	close(Stream),
 	!.
@@ -249,11 +249,11 @@ full_js_graph([V1-V2|Xs], Stream, Name) :-
 		append("g", N1, N2),
 		append(N2, ".addEdge(\"", N3),
 		name(GStart, N3),
-		write(Stream, GStart),
-		write(Stream, V1),
-		write(Stream, '" , "'),
-		write(Stream, V2),
-		write(Stream, '");'),
+		cleanly_write(Stream, GStart),
+		cleanly_write(Stream, V1),
+		cleanly_write(Stream, '" , "'),
+		cleanly_write(Stream, V2),
+		cleanly_write(Stream, '");'),
 		nl(Stream),
 		!,
 		full_js_graph(Xs, Stream, Name).
@@ -268,11 +268,11 @@ partial_js_graph(Root, [X|Xs], Stream, Name) :-
 		append("g", N1, N2),
 		append(N2, ".addEdge(\"", N3),
 		name(GStart, N3),
-		write(Stream, GStart),
-		write(Stream, Root),
-		write(Stream, '" , "'),
-		write(Stream, X),
-		write(Stream, '");'),
+		cleanly_write(Stream, GStart),
+		cleanly_write(Stream, Root),
+		cleanly_write(Stream, '" , "'),
+		cleanly_write(Stream, X),
+		cleanly_write(Stream, '");'),
 		nl(Stream),
 		!,
 		partial_js_graph(Root, Xs, Stream, Name).
@@ -353,7 +353,7 @@ cleanly_load_html(_,[]).
 % all retrieved data (finding crawler)
 f_html_create_document(URI,Title,Starts,Contains,Ends,Links,Depth) :-
 	phrase(f_html_structure(Title,Starts,Contains,Ends,Links,Depth), Tokens),
-	open(URI, write, Stream),
+	open(URI, write, Stream, [encoding(utf8)]),
 	print_html(Stream,Tokens),
 	close(Stream).
 
@@ -412,7 +412,7 @@ f_html_structure(Title,Starts,Contains,Ends,Links,Depth) -->
 % all retrieved data (retrieving crawler)
 html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) :-
 	phrase(html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph), Tokens),
-	open(URI, write, Stream),
+	open(URI, write, Stream, [encoding(utf8)]),
 	print_html(Stream,Tokens),
 	close(Stream).
 
@@ -748,6 +748,21 @@ not_headed_node([_|Xs], N) :-
 %---------------------------%
 % FILES & FOLDER PREDICATES %
 %---------------------------%
+
+% Predicate to cleanly write the given text to the output stream
+cleanly_write(Stream, Text) :-
+	atom_chars(Text, CharList),
+	dump_to_stream(CharList, Stream).
+	
+% Dump the given char list into Stream
+dump_to_stream([], _).
+dump_to_stream([X|Xs], Stream) :-
+	put(Stream, X),
+	dump_to_stream(Xs, Stream),!.
+% In case of fail, we avoid dumping that char. This is not the cleanest approach but
+% its needed for avoid stopping the application
+dump_to_stream([_|Xs], Stream) :-
+	dump_to_stream(Xs, Stream).
 
 % Predicate to copy one file to another. It will be used to
 % auto copy the CSS file to every output folder
