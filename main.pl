@@ -500,7 +500,7 @@ generate_d_graph_html(URL, Graph, Folder) :-
 	% Generate a single document only if there are
 	% less than N elements
 	length(V, L),
-	L < 10,!,
+	L < 20,!,
 	%append(Folder, "/graphs", GDir),	
 	%append(Directory,"graph.html",GraphURI),
 	%name(GURI,GraphURI),
@@ -510,12 +510,11 @@ generate_d_graph_html(URL, Graph, Folder) :-
 
 generate_d_graph_html(URL, Graph, Folder) :-
 	!,
-	%append(Folder, "/graphs", GDir),	
-	%append(Directory,"graph.html",GraphURI),
-	%name(GURI,GraphURI),
+	%append(Folder, "/graph1.html", GraphURI),
+	%name(GURI, GraphURI),
+	%html_create_graph_document(GURI, "1", URL, Graph, Folder).
 	filter_graph(Graph, FGraph),
 	separate_graph(FGraph, SepGraph),
-	%writeln(SepGraph),
 	write_separated_graph(SepGraph, URL, Folder, 1).
 
 % Predicate to help writing the bigger graphs in multiple html docs
@@ -552,7 +551,7 @@ separate_graph(Graph, Result) :-
 % Predicate to take N elems from a given list. In this case 20. We don't
 % parametrize this predicate as we only need 20 elems
 take_n([], [], [], _) :- !.
-take_n(Remaining, Remaining, [], 10) :- !.
+take_n(Remaining, Remaining, [], 20) :- !.
 take_n([X|Xs], Remaining, Taken, N) :- 
 	!,
 	M is N+1,
