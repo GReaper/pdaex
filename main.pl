@@ -500,7 +500,8 @@ generate_d_graph_html(URL, Graph, Folder) :-
 	% Generate a single document only if there are
 	% less than N elements
 	length(V, L),
-	L < 5,!,
+	% TODO: change to 10
+	L < 2,!,
 	%append(Folder, "/graphs", GDir),	
 	%append(Directory,"graph.html",GraphURI),
 	%name(GURI,GraphURI),
@@ -515,6 +516,7 @@ generate_d_graph_html(URL, Graph, Folder) :-
 	%name(GURI,GraphURI),
 	filter_graph(Graph, FGraph),
 	separate_graph(FGraph, SepGraph),
+	%writeln(SepGraph),
 	write_separated_graph(SepGraph, URL, Folder, 1).
 
 % Predicate to help writing the bigger graphs in multiple html docs
@@ -551,7 +553,8 @@ separate_graph(Graph, Result) :-
 % Predicate to take N elems from a given list. In this case 20. We don't
 % parametrize this predicate as we only need 20 elems
 take_n([], [], [], _) :- !.
-take_n(Remaining, Remaining, [], 5) :- !.
+% TODO: change to 10
+take_n(Remaining, Remaining, [], 2) :- !.
 take_n([X|Xs], Remaining, Taken, N) :- 
 	!,
 	M is N+1,
@@ -588,7 +591,7 @@ html_graph_structure(Title,JSEnd,Graph,Folder) -->
 
 % Predicate to dump the graph HTML content
 dump_graph_to_html(Title,JSEnd,Graph,Folder) -->
-	{vertices(Graph, V),
+	{edges(Graph, V),
 	length(V, L),
 	% Check if the complete graph is small enought
 	L < 20, !},
@@ -848,7 +851,7 @@ copy(File1, File2) :-
 copy(_, _).
 
 % Predicate to create the ouput folder (scanning crawler)
-create_dump_folder(Folder, ContentFolder) :-
+create_dump_folder(Folder, ContentFolder, GraphsFolder) :-
 	get_time(TimeStamp),
 	stamp_date_time(TimeStamp,LocalDate,local),
 	LocalDate = date(Y, M, D, H, Min, Sec, _, _, _),
@@ -872,8 +875,11 @@ create_dump_folder(Folder, ContentFolder) :-
 	% Create folder to dump all secondary web data
 	append(Folder, "/other_data",ContentFolder),
 	make_directory(ContentFolder),
+	% Create folder to dump all graphs
+	append(Folder, "/graphs",GraphsFolder),
+	make_directory(GraphsFolder),
 	!.
-create_dump_folder(_, _) :-
+create_dump_folder(_, _, _) :-
 	write('Error: cannot create the output folder. '),
 	writeln('Please, check you have got the right permissions.'),
 	fail.
@@ -919,7 +925,7 @@ generate_css_file(_) :-
 
 % Predicate to copy the JS files to the ouput folder
 generate_js_files(Folder) :-
-	append(Folder,"/js",JsDirectory),
+	append(Folder,"/graphs/js",JsDirectory),
 	make_directory(JsDirectory),
 	% First JS file
 	append(JsDirectory,"/raphael-min.js",JsFile1),
@@ -991,9 +997,10 @@ generate_complete_graph(BaseUrl,[L|Ls],Graph) :-
 process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 	!,
 	% Create results folder
-	create_dump_folder(Folder, _),
-	% Copy css file to results folder
+	create_dump_folder(Folder, _, GraphsFolder),
+	% Copy css file to results and graphs folder
 	generate_css_file(Folder),
+	generate_css_file(GraphsFolder),
 	% Copy js files to results folder
 	generate_js_files(Folder),
 	% Write process info
@@ -1035,17 +1042,19 @@ process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 	name(URI,DirectoryURI),
 	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
 	% Dump graph in one/multiple HTML doc(s)
-	generate_d_graph_html(URL, OutGraph, Folder).
+	append(Directory, "graphs", GFolder),
+	generate_d_graph_html(URL, OutGraph, GFolder).
 	%append(Directory,"graph.html",GraphURI),
 	%name(GURI,GraphURI),
 	%html_create_graph_document(GURI,URL,OutGraph,Folder).
 
 process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	% Create results folder
-	create_dump_folder(Folder, ContentFolder),
-	% Copy css file to results folder
+	create_dump_folder(Folder, ContentFolder, GraphsFolder),
+	% Copy css file to results, extra and graphs folders
 	generate_css_file(Folder),
 	generate_css_file(ContentFolder),
+	generate_css_file(GraphsFolder),
 	% Copy js files to results folder
 	generate_js_files(Folder),
 	% Write process info
@@ -1096,7 +1105,8 @@ process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	%write('Complete graph ->'),writeln(OutCompleteGraph),
 	%create_graph_js(OutGraph, Folder, "index"),
 	% Dump graph in one/multiple HTML doc(s)
-	generate_d_graph_html(URL, OutGraph, Folder),
+	append(Directory, "graphs", GFolder),
+	generate_d_graph_html(URL, OutGraph, GFolder),
 	%append(Directory,"graph.html",GraphURI),
 	%name(GURI,GraphURI),
 	%html_create_graph_document(GURI,URL,OutGraph,Folder),
