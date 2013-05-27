@@ -500,8 +500,7 @@ generate_d_graph_html(URL, Graph, Folder) :-
 	% Generate a single document only if there are
 	% less than N elements
 	length(V, L),
-	% TODO: change to 10
-	L < 2,!,
+	L < 10,!,
 	%append(Folder, "/graphs", GDir),	
 	%append(Directory,"graph.html",GraphURI),
 	%name(GURI,GraphURI),
@@ -553,8 +552,7 @@ separate_graph(Graph, Result) :-
 % Predicate to take N elems from a given list. In this case 20. We don't
 % parametrize this predicate as we only need 20 elems
 take_n([], [], [], _) :- !.
-% TODO: change to 10
-take_n(Remaining, Remaining, [], 2) :- !.
+take_n(Remaining, Remaining, [], 10) :- !.
 take_n([X|Xs], Remaining, Taken, N) :- 
 	!,
 	M is N+1,
