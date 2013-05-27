@@ -591,7 +591,7 @@ dump_graph_to_html(Title,JSEnd,Graph,Folder) -->
 	{edges(Graph, V),
 	length(V, L),
 	% Check if the complete graph is small enought
-	L < 20, !},
+	L < 50, !},
 	dump_one_graph(Title,JSEnd,Graph,Folder).
 
 dump_graph_to_html(_,JSEnd,Graph,Folder) -->
@@ -642,7 +642,7 @@ dump_multiple_graphs([Root-Nodes|Xs],Stream,Name) -->
 		head_graph_js(Stream, Name),
 		length(Nodes, L),
 		(
-			(L > 20) ->
+			(L > 30) ->
 			partial_js_graph(Root, ['Too much nodes to be displayed'], Stream, Name)
 			;
 			partial_js_graph(Root, Nodes, Stream, Name)
