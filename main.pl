@@ -513,8 +513,8 @@ generate_d_graph_html(URL, Graph, Folder) :-
 	%append(Folder, "/graphs", GDir),	
 	%append(Directory,"graph.html",GraphURI),
 	%name(GURI,GraphURI),
-	separate_graph(Graph, SepGraph),
-	write(SepGraph),
+	filter_graph(Graph, FGraph),
+	separate_graph(FGraph, SepGraph),
 	write_separated_graph(SepGraph, URL, Folder, 1).
 
 % Predicate to help writing the bigger graphs in multiple html docs
@@ -526,11 +526,19 @@ write_separated_graph([G|Gs], URL, Folder, Ending) :-
 	append(A1, EList, A2),
 	append(A2, ".html", GraphURI),
 	name(GURI, GraphURI),
-	writeln(G),
-	nl, nl,
 	html_create_graph_document(GURI, EList, URL, G, Folder),
 	NewEnding is Ending + 1,
 	write_separated_graph(Gs, URL, Folder, NewEnding).
+
+% Filter graph to avoid writing empty subgraphs
+filter_graph([], []).
+filter_graph([_-[]|Xs], FilteredG) :-
+	!,
+	filter_graph(Xs, FilteredG).
+filter_graph([X|Xs], FilteredG) :-
+	!,
+	filter_graph(Xs, FG1),
+	append([X], FG1, FilteredG).
 
 % Predicate to separate the given graph in sections of N to N elems
 separate_graph([], []) :- !.
@@ -543,7 +551,7 @@ separate_graph(Graph, Result) :-
 % Predicate to take N elems from a given list. In this case 20. We don't
 % parametrize this predicate as we only need 20 elems
 take_n([], [], [], _) :- !.
-take_n(Remaining, Remaining, [], 20) :- !.
+take_n(Remaining, Remaining, [], 5) :- !.
 take_n([X|Xs], Remaining, Taken, N) :- 
 	!,
 	M is N+1,
