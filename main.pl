@@ -494,15 +494,76 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
                      ])
              ]).
 
+% Predicate to split the given graph in multiple HTML docs
+generate_d_graph_html(URL, Graph, Folder) :-
+	vertices(Graph, V),
+	% Generate a single document only if there are
+	% less than N elements
+	length(V, L),
+	L < 5,!,
+	%append(Folder, "/graphs", GDir),	
+	%append(Directory,"graph.html",GraphURI),
+	%name(GURI,GraphURI),
+	append(Folder, "/graph1.html", GraphURI),
+	name(GURI, GraphURI),
+	html_create_graph_document(GURI, "1", URL, Graph, Folder).
+
+generate_d_graph_html(URL, Graph, Folder) :-
+	!,
+	%append(Folder, "/graphs", GDir),	
+	%append(Directory,"graph.html",GraphURI),
+	%name(GURI,GraphURI),
+	separate_graph(Graph, SepGraph),
+	write(SepGraph),
+	write_separated_graph(SepGraph, URL, Folder, 1).
+
+% Predicate to help writing the bigger graphs in multiple html docs
+write_separated_graph([], _, _, _) :- !.
+write_separated_graph([G|Gs], URL, Folder, Ending) :- 
+	!,	
+	name(Ending, EList),
+	append(Folder, "/graph", A1),
+	append(A1, EList, A2),
+	append(A2, ".html", GraphURI),
+	name(GURI, GraphURI),
+	writeln(G),
+	nl, nl,
+	html_create_graph_document(GURI, EList, URL, G, Folder),
+	NewEnding is Ending + 1,
+	write_separated_graph(Gs, URL, Folder, NewEnding).
+
+% Predicate to separate the given graph in sections of N to N elems
+separate_graph([], []) :- !.
+separate_graph(Graph, Result) :-
+	!,
+	take_n(Graph, Remaining, Taken, 0),
+	separate_graph(Remaining, E1),
+	append([Taken], E1, Result).
+	
+% Predicate to take N elems from a given list. In this case 20. We don't
+% parametrize this predicate as we only need 20 elems
+take_n([], [], [], _) :- !.
+take_n(Remaining, Remaining, [], 20) :- !.
+take_n([X|Xs], Remaining, Taken, N) :- 
+	!,
+	M is N+1,
+	take_n(Xs, Remaining, TAux, M),
+	append([X], TAux, Taken).
+
 % This predicate creates an HTML output document and dumps
 % the hosts graph
-html_create_graph_document(URI,Title,Graph,Folder) :-
-	phrase(html_graph_structure(Title,Graph,Folder), Tokens),
+html_create_graph_document(URI,JSEnd,Title,Graph,Folder) :-
+	phrase(html_graph_structure(Title,JSEnd,Graph,Folder), Tokens),
 	open(URI, write, Stream, [encoding(utf8)]),
 	print_html(Stream,Tokens),
 	close(Stream).
 
-html_graph_structure(Title,Graph,Folder) -->
+html_graph_structure(Title,JSEnd,Graph,Folder) -->
+		{
+			append("js/index", JSEnd, A1),
+			append(A1, ".js", A2),
+			name(JSFile, A2)
+		},
 		page([title(['Hosts graph']),
 			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')]),
 			link([rel('stylesheet'),type('text/css'),href('css/main.css')]),
@@ -511,23 +572,24 @@ html_graph_structure(Title,Graph,Folder) -->
 			script([type('text/javascript'),src('js/jquery-1.4.2.min.js')],''),
 			script([type('text/javascript'),src('js/dracula_graph.js')],''),
 			script([type('text/javascript'),src('js/dracula_algorithms.js')],''),
-			script([type('text/javascript'),src('js/index.js')],'')
+			script([type('text/javascript'),src(JSFile)],'')
 			],
 			[
-			   \dump_graph_to_html(Title,Graph,Folder)
+			   \dump_graph_to_html(Title,JSEnd,Graph,Folder)
             ]).
 
 % Predicate to dump the graph HTML content
-dump_graph_to_html(Title,Graph,Folder) -->
+dump_graph_to_html(Title,JSEnd,Graph,Folder) -->
 	{vertices(Graph, V),
 	length(V, L),
 	% Check if the complete graph is small enought
 	L < 20, !},
-	dump_one_graph(Title,Graph,Folder).
+	dump_one_graph(Title,JSEnd,Graph,Folder).
 
-dump_graph_to_html(_,Graph,Folder) -->
+dump_graph_to_html(_,JSEnd,Graph,Folder) -->
 	{
-		init_graph_js(Folder, "index", Stream)
+		append("index", JSEnd, JSName),
+		init_graph_js(Folder, JSName, Stream)
 	},
 	dump_multiple_graphs(Graph,Stream,0),
 	{
@@ -535,15 +597,16 @@ dump_graph_to_html(_,Graph,Folder) -->
 		!
 	}.
 
-dump_graph_to_html(_,_,_) -->
+dump_graph_to_html(_,_,_,_) -->
 	{writeln('Error: graph has not been created. Aborting execution.')},
 	[].
 
 % Generate one graph JS
-dump_one_graph(Title,Graph,Folder) -->
+dump_one_graph(Title,JSEnd,Graph,Folder) -->
 	{
 		edges(Graph, Edges),
-		init_graph_js(Folder, "index", Stream),
+		append("index", JSEnd, JSName),
+		init_graph_js(Folder, JSName, Stream),
 		head_graph_js(Stream, 1),
 		full_js_graph(Edges, Stream, 1),
 		ending_graph_js(Stream, 1),
@@ -963,9 +1026,11 @@ process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
 	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
-	append(Directory,"graph.html",GraphURI),
-	name(GURI,GraphURI),
-	html_create_graph_document(GURI,URL,OutGraph,Folder).
+	% Dump graph in one/multiple HTML doc(s)
+	generate_d_graph_html(URL, OutGraph, Folder).
+	%append(Directory,"graph.html",GraphURI),
+	%name(GURI,GraphURI),
+	%html_create_graph_document(GURI,URL,OutGraph,Folder).
 
 process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	% Create results folder
@@ -1022,9 +1087,11 @@ process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
 	%write('Graph ->'),writeln(OutGraph),
 	%write('Complete graph ->'),writeln(OutCompleteGraph),
 	%create_graph_js(OutGraph, Folder, "index"),
-	append(Directory,"graph.html",GraphURI),
-	name(GURI,GraphURI),
-	html_create_graph_document(GURI,URL,OutGraph,Folder),
+	% Dump graph in one/multiple HTML doc(s)
+	generate_d_graph_html(URL, OutGraph, Folder),
+	%append(Directory,"graph.html",GraphURI),
+	%name(GURI,GraphURI),
+	%html_create_graph_document(GURI,URL,OutGraph,Folder),
 	!.
 
 % Process URL with no depth (only base URL)
