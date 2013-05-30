@@ -1,14 +1,32 @@
 %Prueba con la funcion para el prompt
-crawler(Prompt):-
-	read_history('history', 'help', [trace],Prompt, Goal,_).
-	parser_crawler(Goal).
+expresion(E,Lista) -->
+	 comando(C),
+	 opciones(O),
+	 {append([C],O,Lista)}.
 
-parser_crawler(Goal) -->
-		hecho(Command),
-		{
-		    Command=='search',test1
-		}.
+expresion(E,Lista) -->
+	comando(C),
+	{append([C],[],Lista)}.
 
+comando(C) --> "scan",{name(C,"scan")}.
+comando(C) --> "find",{name(C,"find")}.
+comando(C) --> "help",{name(C,"help")}.
+
+opciones(O) --> " ",!,O1,sigOpcion(O2),
+                {name(Atom,O1),append([Atom],O2,O)}.
+opciones([]) --> [].
+
+sigOpcion(O) --> " ",!,opciones(O).
+
+%Esto para la url o las funcionaliad de start,contains o ends
+%valor --> [V|_],{string_to_list(S,V),string(S)}.
+%valor --> " ".
+
+%upto_space(Atom) -->
+%        string(Codes), " ", !,
+%        { atom_codes(Atom, Codes) }.
+
+%Esto es solo por tener un ejemplo
 expr(E) -->
         term(T),
         contExpr(Op,T2),
