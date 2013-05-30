@@ -1345,6 +1345,72 @@ f_evaluate_level([L|Ls], N, VisitedLinks, Starts, Contains, Ends, FLinks, NFLink
 		      f_evaluate_level(Ls, N, VisitedLinks, Starts, Contains, Ends, FLinks, NFLinks))
 	      ).
 
+%---------------%
+%  MAIN PROMPT  %
+%---------------%
+
+% Main application entry point
+crawler :-
+    prompt(_, 'crawler1.0 > '),
+    repeat,
+    read_line_to_codes(current_input, Codes),
+    (
+        Codes = end_of_file
+    ->
+    	% End prompt with EOF
+        true
+    ;
+    	% Process command
+        process_command(Codes),
+        % Fail to relaunch crawler prompt
+        fail
+    ).
+
+process_command(Codes) :-
+    % Convert the list of codes to a list of code lists of words
+    (
+    	phrase(split_by_spaces(AtomList), Codes) ->
+        % Check if the command is OK and launch the appropiate predicate
+        % check_and_execute(AtomList)
+    	;
+        writeln('Error: invalid command. Please, type "help" to get the command using list.')
+    ).
+
+% DCG to split the user entry by spaces to retrieve all
+% commands and parameters
+split_by_spaces([A|As]) -->
+    spaces(_),
+    chars([X|Xs]),
+    {
+    	atom_codes(A, [X|Xs])
+    },
+    spaces(_),
+    data(As).
+split_by_spaces([]) --> [].
+
+chars([X|Xs]) --> 
+	char(X), !, 
+	chars(Xs).
+chars([]) --> [].
+
+spaces([X|Xs]) --> 
+	space(X), !, 
+	spaces(Xs).
+spaces([]) --> [].
+
+space(X) --> 
+	[X], 
+	{
+		% Check for space code
+		code_type(X, space)
+	}.
+char(X) --> 
+	[X], 
+	{
+		% Check for any code except space one
+		\+ code_type(X, space)
+	}.
+
 %----------------------%
 %  TESTING PREDICATES  %
 %----------------------%
