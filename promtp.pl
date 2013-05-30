@@ -9,9 +9,9 @@ expresion(Lista) -->
 	comando(C),
 	{append([C],[],Lista)}.
 
-comando('scan') --> "scan",!.%,{name(C,"scan")}.
-comando('help') --> "help",!.%,{name(C,"help")}.
-comando('find') --> "find",!.%,{name(C,"find")}.
+comando(C) --> "scan",!,{name(C,"scan")}.
+comando(C) --> "help",!,{name(C,"help")}.
+comando(C) --> "find",!,{name(C,"find")}.
 
 opciones(O) --> O1,sigOpcion(O2),
                 {name(Atom,O1),append([Atom],O2,O)}.
