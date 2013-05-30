@@ -41,10 +41,18 @@ processData(Codes) :-
         format('Didn''t recognize data.\n')
     ).
 
-process_atomList([scan|Options]):-.
-process_atomList([find|Options]):-.
-process_atomList([help|_]):-.
-process_atomList([_|_]):- writeln("Comando no existente.Consulte la ayuda").
+%process_atomList([scan|Options]):-
+%       !,
+%	runScan(Options).
 
+%process_atomList([find|Options]):-
+%       !,
+%	runFind(Options).
+
+process_atomList([help|_]):-!,
+        writeln('LLamada a la funcion para mostrar la ayuda').
+
+process_atomList([_|_]):-
+	writeln('Comando no existente.Consulte la ayuda').
 
 
