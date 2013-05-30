@@ -1372,6 +1372,7 @@ process_command(Codes) :-
     	phrase(split_by_spaces(AtomList), Codes) ->
         % Check if the command is OK and launch the appropiate predicate
         % check_and_execute(AtomList)
+        writeln(AtomList)
     	;
         writeln('Error: invalid command. Please, type "help" to get the command using list.')
     ).
@@ -1379,32 +1380,32 @@ process_command(Codes) :-
 % DCG to split the user entry by spaces to retrieve all
 % commands and parameters
 split_by_spaces([A|As]) -->
-    spaces(_),
-    chars([X|Xs]),
+    rm_spaces(_),
+    get_chars([X|Xs]),
     {
     	atom_codes(A, [X|Xs])
     },
-    spaces(_),
+    rm_spaces(_),
     data(As).
 split_by_spaces([]) --> [].
 
-chars([X|Xs]) --> 
-	char(X), !, 
-	chars(Xs).
-chars([]) --> [].
+get_chars([X|Xs]) --> 
+	get_char(X), !, 
+	get_chars(Xs).
+get_chars([]) --> [].
 
-spaces([X|Xs]) --> 
-	space(X), !, 
-	spaces(Xs).
-spaces([]) --> [].
+rm_spaces([X|Xs]) --> 
+	get_space(X), !, 
+	rm_spaces(Xs).
+rm_spaces([]) --> [].
 
-space(X) --> 
+get_space(X) --> 
 	[X], 
 	{
 		% Check for space code
 		code_type(X, space)
 	}.
-char(X) --> 
+get_char(X) --> 
 	[X], 
 	{
 		% Check for any code except space one
