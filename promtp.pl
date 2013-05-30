@@ -37,8 +37,32 @@ contExpr('+',E) --> "+", !, expr(E).
 contExpr('-',E) --> "-", !, expr(E).
 contExpr(_,_) --> "".
 
+data([A|As]) --> 
+    spaces(_), 
+    chars([X|Xs]), 
+    {atom_codes(A, [X|Xs])}, 
+    spaces(_), 
+    data(As).
+data([]) --> [].
 
+chars([X|Xs]) --> char(X), !, chars(Xs).
+chars([]) --> [].
 
+spaces([X|Xs]) --> space(X), !, spaces(Xs).
+spaces([]) --> [].
+
+space(X) --> [X], {code_type(X, space)}. 
+char(X) --> [X], {\+ code_type(X, space)}.
+
+processData(Codes) :-
+    % convert the list of codes to a list of code lists of words
+    (phrase(data(AtomList), Codes) ->
+        % concatenate the atoms into a single one delimited by commas
+        concat_atom(AtomList, ', ', Atoms),
+        write_ln(Atoms)
+    ;
+        format('Didn''t recognize data.\n')
+    ).
 
 term(T) -->
         fact(F), contTerm(Op,F2),
