@@ -1386,7 +1386,7 @@ split_by_spaces([A|As]) -->
     	atom_codes(A, [X|Xs])
     },
     rm_spaces(_),
-    data(As).
+    split_by_spaces(As).
 split_by_spaces([]) --> [].
 
 get_chars([X|Xs]) --> 
