@@ -1,7 +1,7 @@
 %Prueba con la funcion para el prompt
 expresion(Lista) -->
 	 comando(C),
-	 " ",
+	 " ",!,
 	 opciones(O),
 	 {append([C],O,Lista)}.
 
@@ -9,9 +9,9 @@ expresion(Lista) -->
 	comando(C),
 	{append([C],[],Lista)}.
 
-comando(C) --> "help",{name(C,"help")}.
-comando(C) --> "scan",{name(C,"scan")}.
-comando(C) --> "find",{name(C,"find")}.
+comando('scan') --> "scan",!.%,{name(C,"scan")}.
+comando('help') --> "help",!.%,{name(C,"help")}.
+comando('find') --> "find",!.%,{name(C,"find")}.
 
 opciones(O) --> O1,sigOpcion(O2),
                 {name(Atom,O1),append([Atom],O2,O)}.
@@ -21,12 +21,7 @@ sigOpcion([]) --> [].
 
 %Esto para la url o las funcionaliad de start,contains o ends
 %valor --> [V|_],{string_to_list(S,V),string(S)}.
-%valor --> " ".
-
-%upto_space(Atom) -->
-%        string(Codes), " ", !,
-%        { atom_codes(Atom, Codes) }.
-
+%valor --> " ",
 %Esto es solo por tener un ejemplo
 expr(E) -->
         term(T),
