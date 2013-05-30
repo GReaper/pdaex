@@ -1,22 +1,23 @@
 %Prueba con la funcion para el prompt
-expresion(E,Lista) -->
+expresion(Lista) -->
 	 comando(C),
+	 " ",
 	 opciones(O),
 	 {append([C],O,Lista)}.
 
-expresion(E,Lista) -->
+expresion(Lista) -->
 	comando(C),
 	{append([C],[],Lista)}.
 
+comando(C) --> "help",{name(C,"help")}.
 comando(C) --> "scan",{name(C,"scan")}.
 comando(C) --> "find",{name(C,"find")}.
-comando(C) --> "help",{name(C,"help")}.
 
-opciones(O) --> " ",!,O1,sigOpcion(O2),
+opciones(O) --> O1,sigOpcion(O2),
                 {name(Atom,O1),append([Atom],O2,O)}.
-opciones([]) --> [].
 
 sigOpcion(O) --> " ",!,opciones(O).
+sigOpcion([]) --> [].
 
 %Esto para la url o las funcionaliad de start,contains o ends
 %valor --> [V|_],{string_to_list(S,V),string(S)}.
