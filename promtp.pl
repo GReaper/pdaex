@@ -39,26 +39,29 @@ split_by_spaces([A|As]) -->
     },
     rm_spaces(_),
     split_by_spaces(As).
+
 split_by_spaces([]) --> [].
 
-get_chars([X|Xs]) --> 
-    get_char(X), !, 
+get_chars([X|Xs]) -->
+    get_char(X), !,
     get_chars(Xs).
+
 get_chars([]) --> [].
 
-rm_spaces([X|Xs]) --> 
-    get_space(X), !, 
+rm_spaces([X|Xs]) -->
+    get_space(X), !,
     rm_spaces(Xs).
+
 rm_spaces([]) --> [].
 
-get_space(X) --> 
-    [X], 
+get_space(X) -->
+    [X],
     {
         % Check for space code
         code_type(X, space)
     }.
-get_char(X) --> 
-    [X], 
+get_char(X) -->
+    [X],
     {
         % Check for any code except space one
         \+ code_type(X, space)
