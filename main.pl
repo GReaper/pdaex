@@ -1371,8 +1371,7 @@ process_command(Codes) :-
     (
     	phrase(split_by_spaces(AtomList), Codes) ->
         % Check if the command is OK and launch the appropiate predicate
-        % check_and_execute(AtomList)
-        writeln(AtomList)
+        check_and_execute(AtomList)
     	;
         writeln('Error: invalid command. Please, type "help" to get the command using list.')
     ).
@@ -1411,6 +1410,32 @@ get_char(X) -->
 		% Check for any code except space one
 		\+ code_type(X, space)
 	}.
+
+% Check and execute a command
+check_and_execute([scan | Options]) :-
+	format_options(Options, FOptions),
+	writeln(FOptions),
+	!. 
+check_and_execute([find | Options]) :-
+	format_options(Options, FOptions),
+	writeln(FOptions),
+	!. 
+check_and_execute([help | _]) :-
+	writeln('help'),
+	!. 
+check_and_execute(_) :-
+	writeln('Command not found or invalid params. Please, type "help" to check for available commands and formats.'),
+	!. 
+
+% Predicate to format the received options list
+format_options([],[]).
+format_options([ Type, Value | ROp], FOp) :-
+	format_options(ROp, FO1),
+	append([(Type,Value)], FO1, FOp),
+	!.
+format_options :-
+	writeln('Invalid options format.  Please check your syntax or type "help" to list all available commands').
+
 
 %----------------------%
 %  TESTING PREDICATES  %
