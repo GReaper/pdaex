@@ -1526,7 +1526,16 @@ get_number_param(_ , [], _) :-
     fail.
 get_number_param(Type, [ (Type, Value) | _ ], Value) :- 
 	(
-		(integer(Value), Value >= 0) ->
+        (
+        catch(
+            % Try section
+            (atom_number(Value, Num), integer(Num), Num >= 0),
+            % Exception
+            _,
+             % Catch section
+            ( fail )
+            )
+        ) ->
 		!
 		;
 		!,
