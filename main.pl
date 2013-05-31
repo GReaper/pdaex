@@ -1436,7 +1436,6 @@ format_options([ Type, Value | ROp], FOp) :-
 format_options :-
 	writeln('Invalid options format.  Please check your syntax or type "help" to list all available commands').
 
-
 %----------------------%
 %  TESTING PREDICATES  %
 %----------------------%
