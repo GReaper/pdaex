@@ -1355,9 +1355,9 @@ crawler :-
     repeat,
     read_line_to_codes(current_input, Codes),
     (
-        Codes = end_of_file
+        Codes = "exit"
     ->
-    	% End prompt with EOF
+    	% End prompt with "exit" command
         true
     ;
     	% Process command
@@ -1443,14 +1443,16 @@ check_and_execute([help | _]) :-
 	writeln('  2.2.- Examples:'),
 	writeln('find -u http://www.fdi.ucm.es -e .pdf -> Finds all linked PDF docs in the FDI website'),
 	writeln('find -u http://www.fdi.ucm.es -d 1 -c turing -> Finds all links which contains the "turing" word starting at the FDI website and with depth 2'),nl,
-	writeln('3.- Additional info'),nl,
-	writeln('  3.1.- CPU, RAM and time usage'),
+	writeln('3.- Command to exit crawler'),nl,
+	writeln('exit'),nl,
+	writeln('4.- Additional info'),nl,
+	writeln('  4.1.- CPU, RAM and time usage'),
 	writeln('Users must take into account that exploring in depths greater than 2 or 3 starting at well known webs may return an enormous amount of results. This may produce:'),
 	writeln('  - High RAM usage: this may need user to increase the amount of RAM used by SWI-Prolog to avoid stack overflow problems.'),
 	writeln('  - High CPU usage.'),
 	writeln('  - Long amount of time: depending on the user\'s PC specs, exploring may take a long time in greater depths, so be patient!'),
 	nl,
-	writeln('  3.2.- Internet connection fails'),
+	writeln('  4.2.- Internet connection fails'),
 	writeln('As you can imagine, you need to stay connected to the Internet while using this application. In case that your connection is lost during one scanning process, the system may continue trying to connect.'),
 	writeln('If the application gets stucked on a web during a long time due to some connection problem, you can try Ctrl+C and then type "a" to abort that URL scanning. In this case the system will try to continue the execution to avoid losing data due to an unusual connection problem.'),
 	!. 
