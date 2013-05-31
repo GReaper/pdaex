@@ -68,7 +68,9 @@ get_char(X) -->
 check_and_execute([scan | Options]) :-
     format_options(Options, FOptions),
     writeln(FOptions),
-    !. 
+    !,
+    get_param('-u', FOptions, URL),
+    writeln(URL). 
 check_and_execute([find | Options]) :-
     format_options(Options, FOptions),
     writeln(FOptions),
@@ -87,4 +89,55 @@ format_options([ Type, Value | ROp], FOp) :-
     append([(Type,Value)], FO1, FOp),
     !.
 format_options :-
-    writeln('Invalid options format.  Please check your syntax or type "help" to list all available commands').
+    writeln('Invalid options format.  Please check your syntax or type "help" to list all available commands.').
+
+% Predicate to get one param from the list
+get_param(Type , [], _) :-
+    !,
+    name(Type, C1),
+    append("Invalid ", C1, A1),
+    append(A1, " parameter value. Please check your Please check your syntax or type \"help\" to list all available commands.", Error),
+    name(EText, Error),
+    writeln(EText).
+get_param(Type, [ (Type, Value) | _ ], Value) :- 
+    (
+        atomic(Value) ->
+        !
+        ;
+        % Write error
+        name(Type, C1),
+        append("Invalid ", C1, A1),
+        append(A1, " parameter value. Please, check it is a valid atom.", Error),
+        name(EText, Error),
+        writeln(EText)
+    )
+    .
+get_param(Type, [ _ | ParamList ], Value) :-
+    !,
+    get_param(Type, ParamList, Value).
+
+% Predicate to get one number param from the list. In this case 
+% we must ensure the numbes is greater or equal than zero
+get_number_param(Type , [], _) :-
+    !,
+    name(Type, C1),
+    append("Invalid ", C1, A1),
+    append(A1, " parameter value. Please check your Please check your syntax or type \"help\" to list all available commands.", Error),
+    name(EText, Error),
+    writeln(EText).
+get_number_param(Type, [ (Type, Value) | _ ], Value) :- 
+    (
+        (integer(Value), Value >= 0) ->
+        !
+        ;
+        % Write error
+        name(Type, C1),
+        append("Invalid ", C1, A1),
+        append(A1, " parameter value. Please, check it is a valid integer greater or equal than zero.", Error),
+        name(EText, Error),
+        writeln(EText)
+    )
+    .
+get_number_param(Type, [ _ | ParamList ], Value) :-
+    !,
+    get_number_param(Type, ParamList, Value).
