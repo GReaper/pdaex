@@ -1416,14 +1416,23 @@ check_and_execute([scan | Options]) :-
 	format_options(Options, FOptions),
 	writeln(FOptions),
 	!,
-	get_param('-u', FOptions, URL),
+	get_needed_param('-u', FOptions, URL),
 	writeln(URL). 
 check_and_execute([find | Options]) :-
 	format_options(Options, FOptions),
 	writeln(FOptions),
 	!. 
 check_and_execute([help | _]) :-
-	writeln('help'),
+	writeln('=== Crawler help ==='),
+	writeln('1.- Command to retrieve data from a starting URL'),nl,
+	writeln('scan -u URL [-d Depth]'),nl,
+	writeln('  1.1.- Parameters:'),
+	writeln('    -u : URL used as starting point. It must be a valid web URL and'),
+	writeln('         '),
+	writeln(''),
+	writeln(''),
+	writeln(''),
+	writeln(''),
 	!. 
 check_and_execute(_) :-
 	writeln('Command not found or invalid params. Please, type "help" to check for available commands and formats.'),
@@ -1436,27 +1445,54 @@ format_options([ Type, Value | ROp], FOp) :-
 	append([(Type,Value)], FO1, FOp),
 	!.
 format_options :-
-	writeln('Invalid options format.  Please check your syntax or type "help" to list all available commands.').
+	writeln('Invalid options format.  Please check your syntax or type "help" to list all available commands.'),
+    fail.
 
-% Predicate to get one param from the list
-get_param(Type , [], _) :-
+% Predicate to get one needed param from the list
+get_needed_param(Type , [], _) :-
 	!,
 	name(Type, C1),
 	append("Invalid ", C1, A1),
-	append(A1, " parameter value. Please check your Please check your syntax or type \"help\" to list all available commands.", Error),
+	append(A1, " parameter value or param not found. Please check your Please check your syntax or type \"help\" to list all available commands.", Error),
 	name(EText, Error),
-	writeln(EText).
-get_param(Type, [ (Type, Value) | _ ], Value) :- 
+	writeln(EText),
+    fail.
+get_needed_param(Type, [ (Type, Value) | _ ], Value) :- 
 	(
 		atomic(Value) ->
 		!
 		;
+		!,
 		% Write error
 		name(Type, C1),
 		append("Invalid ", C1, A1),
 		append(A1, " parameter value. Please, check it is a valid atom.", Error),
 		name(EText, Error),
-		writeln(EText)
+		writeln(EText),
+    	fail
+	)
+	.
+get_needed_param(Type, [ _ | ParamList ], Value) :-
+	!,
+	get_needed_param(Type, ParamList, Value).
+
+% Predicate to get one optional param from the list
+get_param(_ , [], _) :-
+	!,
+    fail.
+get_param(Type, [ (Type, Value) | _ ], Value) :- 
+	(
+		atomic(Value) ->
+		!
+		;
+		!,
+		% Write error
+		name(Type, C1),
+		append("Invalid ", C1, A1),
+		append(A1, " parameter value. Please, check it is a valid atom.", Error),
+		name(EText, Error),
+		writeln(EText),
+    	fail
 	)
 	.
 get_param(Type, [ _ | ParamList ], Value) :-
@@ -1465,24 +1501,22 @@ get_param(Type, [ _ | ParamList ], Value) :-
 
 % Predicate to get one number param from the list. In this case 
 % we must ensure the numbes is greater or equal than zero
-get_number_param(Type , [], _) :-
+get_number_param(_ , [], _) :-
 	!,
-	name(Type, C1),
-	append("Invalid ", C1, A1),
-	append(A1, " parameter value. Please check your Please check your syntax or type \"help\" to list all available commands.", Error),
-	name(EText, Error),
-	writeln(EText).
+    fail.
 get_number_param(Type, [ (Type, Value) | _ ], Value) :- 
 	(
 		(integer(Value), Value >= 0) ->
 		!
 		;
+		!,
 		% Write error
 		name(Type, C1),
 		append("Invalid ", C1, A1),
 		append(A1, " parameter value. Please, check it is a valid integer greater or equal than zero.", Error),
 		name(EText, Error),
-		writeln(EText)
+		writeln(EText),
+    	fail
 	)
 	.
 get_number_param(Type, [ _ | ParamList ], Value) :-
