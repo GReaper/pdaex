@@ -72,12 +72,25 @@ check_and_execute([scan | Options]) :-
     format_options(Options, FOptions),
     writeln(FOptions),
     !,
-    get_needed_param('-u', FOptions, URL),
-    writeln(URL). 
+    %Get -u param.This option is required
+    (get_needed_param('-u', FOptions, URL) ->
+       writeln(URL)
+    ;
+       writeln('Option -u required.')
+    ),
+     %Get -d param.This option is optional
+    (get_number_param('-d', FOptions, Depth) ->
+       writeln(Depth),
+       writeln('Execute scan -u -d')
+    ;
+       writeln('Execute scan -u 0')
+    )
+    .
+
 check_and_execute([find | Options]) :-
     format_options(Options, FOptions),
     writeln(FOptions),
-    !. 
+    !.
 check_and_execute([help | _]) :-
     writeln('=== Crawler help ==='),
     writeln('1.- Command to retrieve data from a starting URL'),nl,
@@ -89,11 +102,11 @@ check_and_execute([help | _]) :-
     writeln(''),
     writeln(''),
     writeln(''),
-    !. 
-	
+    !.
+
 check_and_execute(_) :-
     writeln('Command not found or invalid params. Please, type "help" to check for available commands and formats.'),
-    !. 
+    !.
 
 % Predicate to format the received options list
 format_options([],[]).
@@ -116,8 +129,8 @@ get_needed_param(Type , [], _) :-
     name(EText, Error),
     writeln(EText),
     fail.
-	
-get_needed_param(Type, [ (Type, Value) | _ ], Value) :- 
+
+get_needed_param(Type, [ (Type, Value) | _ ], Value) :-
     (
         atomic(Value) ->
         !
@@ -130,8 +143,7 @@ get_needed_param(Type, [ (Type, Value) | _ ], Value) :-
         name(EText, Error),
         writeln(EText),
         fail
-    )
-    .
+    ).
 get_needed_param(Type, [ _ | ParamList ], Value) :-
     !,
     get_needed_param(Type, ParamList, Value).
@@ -140,7 +152,7 @@ get_needed_param(Type, [ _ | ParamList ], Value) :-
 get_param(_ , [], _) :-
     !,
     fail.
-get_param(Type, [ (Type, Value) | _ ], Value) :- 
+get_param(Type, [ (Type, Value) | _ ], Value) :-
     (
         atomic(Value) ->
         !
@@ -164,8 +176,8 @@ get_param(Type, [ _ | ParamList ], Value) :-
 get_number_param(_ , [], _) :-
     !,
     fail.
-	
-get_number_param(Type, [ (Type, Value) | _ ], Value) :- 
+
+get_number_param(Type, [ (Type, Value) | _ ], Value) :-
     (
         (integer(Value), Value >= 0) ->
         !
