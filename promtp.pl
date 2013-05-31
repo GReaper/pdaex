@@ -90,16 +90,19 @@ check_and_execute([help | _]) :-
     writeln(''),
     writeln(''),
     !. 
+	
 check_and_execute(_) :-
     writeln('Command not found or invalid params. Please, type "help" to check for available commands and formats.'),
     !. 
 
 % Predicate to format the received options list
 format_options([],[]).
+
 format_options([ Type, Value | ROp], FOp) :-
     format_options(ROp, FO1),
     append([(Type,Value)], FO1, FOp),
     !.
+
 format_options :-
     writeln('Invalid options format.  Please check your syntax or type "help" to list all available commands.'),
     fail.
@@ -113,6 +116,7 @@ get_needed_param(Type , [], _) :-
     name(EText, Error),
     writeln(EText),
     fail.
+	
 get_needed_param(Type, [ (Type, Value) | _ ], Value) :- 
     (
         atomic(Value) ->
@@ -155,11 +159,12 @@ get_param(Type, [ _ | ParamList ], Value) :-
     !,
     get_param(Type, ParamList, Value).
 
-% Predicate to get one number param from the list. In this case 
+% Predicate to get one number param from the list. In this case
 % we must ensure the numbes is greater or equal than zero
 get_number_param(_ , [], _) :-
     !,
     fail.
+	
 get_number_param(Type, [ (Type, Value) | _ ], Value) :- 
     (
         (integer(Value), Value >= 0) ->
