@@ -76,7 +76,8 @@ check_and_execute([scan | Options]) :-
     (get_needed_param('-u', FOptions, URL) ->
        writeln(URL)
     ;
-       writeln('Option -u required.')
+       writeln('Option -u required.'),
+       fail
     ),
      %Get -d param.This option is optional
     (get_number_param('-d', FOptions, Depth) ->
@@ -90,7 +91,36 @@ check_and_execute([scan | Options]) :-
 check_and_execute([find | Options]) :-
     format_options(Options, FOptions),
     writeln(FOptions),
-    !.
+    !,
+    (get_needed_param('-u', FOptions, URL) ->
+       writeln(URL)
+    ;
+       writeln('Option -u required.'),
+       fail
+    ),
+     %Get -d param.This option is optional
+    (get_number_param('-d', FOptions, Depth) ->
+       writeln(Depth)
+    ;
+       Depth=0
+    ),
+    (get_param('-s', FOptions, Starts) ->
+       writeln(Starts)
+    ;
+       Starts=''
+    ),
+    (get_param('-c', FOptions, Contains) ->
+       writeln(Contains)
+    ;
+       Contains=''
+    ),
+   (get_param('-e', FOptions, Ends) ->
+       writeln(Ends)
+    ;
+       Ends=''
+    ),
+    writeln('Execute find -u URL [-d Depth,-s Start,-c Contains,-e Ends]').
+
 check_and_execute([help | _]) :-
     writeln('=== Crawler help ==='),
     writeln('1.- Command to retrieve data from a starting URL'),nl,
@@ -173,7 +203,7 @@ get_param(Type, [ _ | ParamList ], Value) :-
 
 % Predicate to get one number param from the list. In this case
 % we must ensure the numbes is greater or equal than zero
-get_number_param(_ , [], _) :-
+get_number_param(_ ,[], _) :-
     !,
     fail.
 
