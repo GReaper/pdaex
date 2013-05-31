@@ -89,7 +89,8 @@ format_options([ Type, Value | ROp], FOp) :-
     append([(Type,Value)], FO1, FOp),
     !.
 format_options :-
-    writeln('Invalid options format.  Please check your syntax or type "help" to list all available commands.').
+    writeln('Invalid options format.  Please check your syntax or type "help" to list all available commands.'),
+    fail.
 
 % Predicate to get one param from the list
 get_param(Type , [], _) :-
@@ -98,18 +99,21 @@ get_param(Type , [], _) :-
     append("Invalid ", C1, A1),
     append(A1, " parameter value. Please check your Please check your syntax or type \"help\" to list all available commands.", Error),
     name(EText, Error),
-    writeln(EText).
+    writeln(EText),
+    fail.
 get_param(Type, [ (Type, Value) | _ ], Value) :- 
     (
         atomic(Value) ->
         !
         ;
+        !,
         % Write error
         name(Type, C1),
         append("Invalid ", C1, A1),
         append(A1, " parameter value. Please, check it is a valid atom.", Error),
         name(EText, Error),
-        writeln(EText)
+        writeln(EText),
+        fail
     )
     .
 get_param(Type, [ _ | ParamList ], Value) :-
@@ -124,18 +128,21 @@ get_number_param(Type , [], _) :-
     append("Invalid ", C1, A1),
     append(A1, " parameter value. Please check your Please check your syntax or type \"help\" to list all available commands.", Error),
     name(EText, Error),
-    writeln(EText).
+    writeln(EText),
+    fail.
 get_number_param(Type, [ (Type, Value) | _ ], Value) :- 
     (
         (integer(Value), Value >= 0) ->
         !
         ;
+        !,
         % Write error
         name(Type, C1),
         append("Invalid ", C1, A1),
         append(A1, " parameter value. Please, check it is a valid integer greater or equal than zero.", Error),
         name(EText, Error),
-        writeln(EText)
+        writeln(EText),
+        fail
     )
     .
 get_number_param(Type, [ _ | ParamList ], Value) :-
