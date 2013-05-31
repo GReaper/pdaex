@@ -99,25 +99,21 @@ check_and_execute([find | Options]) :-
        fail
     ),
      %Get -d param.This option is optional
-    (get_number_param('-d', FOptions, Depth) ->
+    (not(get_number_param('-d', FOptions, Depth)) ->
+       Depth=0,
        writeln(Depth)
-    ;
-       Depth=0
     ),
-    (get_param('-s', FOptions, Starts) ->
+    (not(get_param('-s', FOptions, Starts)) ->
+	   Starts='',
        writeln(Starts)
-    ;
-       Starts=''
     ),
-    (get_param('-c', FOptions, Contains) ->
-       writeln(Contains)
-    ;
-       Contains=''
+    (not(get_param('-c', FOptions, Contains)) ->
+       Contains='',
+	   writeln(Contains)
     ),
-   (get_param('-e', FOptions, Ends) ->
-       writeln(Ends)
-    ;
-       Ends=''
+   (not(get_param('-e', FOptions, Ends)) ->
+       Ends='',
+	   writeln(Ends)
     ),
     writeln('Execute find -u URL [-d Depth,-s Start,-c Contains,-e Ends]').
 
