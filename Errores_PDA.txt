@@ -20,6 +20,7 @@ Error concreto: devuelve false durante la exploración
 Detalles adicionales: 
 - Explorando la url http://ap.ign.com/zh/ en profundidad 0 devuelve false. Es
 la causante del fallo. Hay que hacer un trace y llegar al punto de error.
+- Falla al volver sobre los add_edges de generate_graph, punto de traza 79
 Estado: sin resolver
 Resolución: 
 == END ERROR ==

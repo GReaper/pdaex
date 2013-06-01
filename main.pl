@@ -983,11 +983,16 @@ generate_graph(BaseUrl,[L|Ls],Graph) :-
 	% Get host name (if possible)
 	extract_host_name(BaseUrl,Host),
 	generate_graph(Host,Ls,G1),
-	% Add current URL to graph (needed?)
+	(
+	(% Add current URL to graph (needed?)
 	add_vertices(G1,[Host],G2),
 	% Get host name (if possible)
 	extract_host_name(L,LHost),
-	add_edges(G2,[Host-LHost],Graph).
+	add_edges(G2,[Host-LHost],Graph)) ->
+	true
+	;
+	true
+	).
 
 % Generate a graph in depth with the given params. In this case we
 % won't trim to the host name
@@ -996,10 +1001,15 @@ generate_complete_graph(BaseUrl,[],Graph) :-
 	add_vertices([],[BaseUrl],Graph),!.
 generate_complete_graph(BaseUrl,[L|Ls],Graph) :-
 	generate_complete_graph(BaseUrl,Ls,G1),
-	% Add current URL to graph (needed?)
+	(
+	(% Add current URL to graph (needed?)
 	add_vertices(G1,[BaseUrl],G2),
 	% Add edge
-	add_edges(G2,[BaseUrl-L],Graph).
+	add_edges(G2,[BaseUrl-L],Graph)) ->
+	true
+	;
+	true
+	).
 
 %---------------------------%
 %  DATA RETRIEVING CRAWLER  %
