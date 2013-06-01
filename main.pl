@@ -870,12 +870,18 @@ create_dump_folder(Folder, ContentFolder, GraphsFolder) :-
 	append(A8, "-", A9),
 	name(Sec, Seconds),
 	append(A9, Seconds, Folder),
+	name(FNm, Folder),
+	write('Creating folder: '),writeln(FNm),
 	make_directory(Folder),
 	% Create folder to dump all secondary web data
 	append(Folder, "/other_data",ContentFolder),
+	name(FNm2, ContentFolder),
+	write('Creating folder: '),writeln(FNm2),
 	make_directory(ContentFolder),
 	% Create folder to dump all graphs
 	append(Folder, "/graphs",GraphsFolder),
+	name(FNm3, GraphsFolder),
+	write('Creating folder: '),writeln(FNm3),
 	make_directory(GraphsFolder),
 	!.
 create_dump_folder(_, _, _) :-
@@ -904,6 +910,8 @@ f_create_dump_folder(Folder) :-
 	append(A8, "-", A9),
 	name(Sec, Seconds),
 	append(A9, Seconds, Folder),
+	name(FNm, Folder),
+	write('Creating folder: '),writeln(FNm),
 	make_directory(Folder),
 	!.
 f_create_dump_folder(_) :-
@@ -914,9 +922,12 @@ f_create_dump_folder(_) :-
 % Predicate to copy the CSS files to the ouput folder
 generate_css_file(Folder) :-
 	append(Folder,"/css",CssDirectory),
+	name(FNm, CssDirectory),
+	write('Creating folder: '),writeln(FNm),
 	make_directory(CssDirectory),
 	append(CssDirectory,"/main.css",CssFile),
 	name(CssFilePath, CssFile),
+	write('Copying css file to: '),writeln(CssFilePath),
 	copy('crawler_css/main.css',CssFilePath),!.
 generate_css_file(_) :-
 	write('Warning: cannot create the css folder. '),
@@ -925,26 +936,33 @@ generate_css_file(_) :-
 % Predicate to copy the JS files to the ouput folder
 generate_js_files(Folder) :-
 	append(Folder,"/graphs/js",JsDirectory),
+	name(FNm, JsDirectory),
+	write('Creating folder: '),writeln(FNm),
 	make_directory(JsDirectory),
 	% First JS file
 	append(JsDirectory,"/raphael-min.js",JsFile1),
 	name(JsFile1Path, JsFile1),
+	write('Copying JS file to: '),writeln(JsFile1Path),
 	copy('crawler_js/raphael-min.js',JsFile1Path),
 	% Second JS file
 	append(JsDirectory,"/dracula_graffle.js",JsFile2),
 	name(JsFile2Path, JsFile2),
+	write('Copying JS file to: '),writeln(JsFile2Path),
 	copy('crawler_js/dracula_graffle.js',JsFile2Path),
 	% Third JS file
 	append(JsDirectory,"/jquery-1.4.2.min.js",JsFile3),
 	name(JsFile3Path, JsFile3),
+	write('Copying JS file to: '),writeln(JsFile3Path),
 	copy('crawler_js/jquery-1.4.2.min.js',JsFile3Path),
 	% Fourth JS file
 	append(JsDirectory,"/dracula_graph.js",JsFile4),
 	name(JsFile4Path, JsFile4),
+	write('Copying JS file to: '),writeln(JsFile4Path),
 	copy('crawler_js/dracula_graph.js',JsFile4Path),
-	% Fourth JS file
+	% Fifth JS file
 	append(JsDirectory,"/dracula_algorithms.js",JsFile5),
 	name(JsFile5Path, JsFile5),
+	write('Copying JS file to: '),writeln(JsFile5Path),
 	copy('crawler_js/dracula_algorithms.js',JsFile5Path),
 	!.
 % In case of fail, we cannot continue cause JS is needed for the graph
