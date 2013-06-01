@@ -1442,21 +1442,29 @@ check_and_execute([find | Options]) :-
         fail
     ),
     % Get optional parameters
-    ((\+ get_number_param('-d', FOptions, Depth)) ->
+    (get_number_param('-d', FOptions, Depth) ->
+       writeln(Depth)
+       ;
        (Depth=0,
        writeln(Depth))
     ),
-    ((\+ get_param('-s', FOptions, Starts)) ->
-	   (Starts='',
-       writeln(Starts))
+    (get_param('-s', FOptions, Starts) ->
+       	writeln(Starts)
+    	;
+	   	(Starts='',
+       	writeln(Starts))
     ),
-    ((\+ get_param('-c', FOptions, Contains)) ->
-       (Contains='',
-	   writeln(Contains))
+    (get_param('-c', FOptions, Contains) ->
+		writeln(Contains)
+		;
+		(Contains='',
+		writeln(Contains))
     ),
-    ((\+ get_param('-e', FOptions, Ends)) ->
-       (Ends='',
-	   writeln(Ends))
+    (get_param('-e', FOptions, Ends) ->
+		writeln(Ends)
+		;
+		(Ends='',
+		writeln(Ends))
     ),
     writeln('Execute find -u URL [-d Depth,-s Start,-c Contains,-e Ends]').
 
@@ -1541,14 +1549,14 @@ get_param(_ , [], _) :-
 	!,
     fail.
 get_param(Type, [ (Type, Value) | _ ], Value) :- 
+	!,
 	(
 		atomic(Value) ->
-		!
+		true
 		;
-		!,
 		% Write error
 		name(Type, C1),
-		append("Invalid ", C1, A1),
+		append("Warning: Invalid ", C1, A1),
 		append(A1, " parameter value. Please, check it is a valid atom.", Error),
 		name(EText, Error),
 		writeln(EText),
@@ -1564,7 +1572,8 @@ get_param(Type, [ _ | ParamList ], Value) :-
 get_number_param(_ , [], _) :-
 	!,
     fail.
-get_number_param(Type, [ (Type, Value) | _ ], Value) :- 
+get_number_param(Type, [ (Type, Value) | _ ], Num) :- 
+	!,
 	(
         (
         catch(
@@ -1576,12 +1585,11 @@ get_number_param(Type, [ (Type, Value) | _ ], Value) :-
             ( fail )
             )
         ) ->
-		!
+		true
 		;
-		!,
 		% Write error
 		name(Type, C1),
-		append("Invalid ", C1, A1),
+		append("Warning: Invalid ", C1, A1),
 		append(A1, " parameter value. Please, check it is a valid integer greater or equal than zero.", Error),
 		name(EText, Error),
 		writeln(EText),
