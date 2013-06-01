@@ -1413,15 +1413,53 @@ get_char(X) -->
 
 % Check and execute a command
 check_and_execute([scan | Options]) :-
-	format_options(Options, FOptions),
-	writeln(FOptions),
-	!,
-	get_needed_param('-u', FOptions, URL),
-	writeln(URL). 
+    format_options(Options, FOptions),
+    writeln(FOptions),
+    !,
+    % Get -u param. This parameter is required
+    (get_needed_param('-u', FOptions, URL) ->
+       writeln(URL)
+    ;
+       fail
+    ),
+    % Get -d param. This parameter is optional
+    (get_number_param('-d', FOptions, Depth) ->
+       writeln(Depth),
+       writeln('Execute scan -u -d')
+    ;
+       writeln('Execute scan -u 0')
+    )
+    .
+
 check_and_execute([find | Options]) :-
-	format_options(Options, FOptions),
-	writeln(FOptions),
-	!. 
+    format_options(Options, FOptions),
+    writeln(FOptions),
+    !,
+    % Get -u param. This parameter is required
+    (get_needed_param('-u', FOptions, URL) ->
+       	writeln(URL)
+    	;
+        fail
+    ),
+    % Get optional parameters
+    ((\+ get_number_param('-d', FOptions, Depth)) ->
+       (Depth=0,
+       writeln(Depth))
+    ),
+    ((\+ get_param('-s', FOptions, Starts)) ->
+	   (Starts='',
+       writeln(Starts))
+    ),
+    ((\+ get_param('-c', FOptions, Contains)) ->
+       (Contains='',
+	   writeln(Contains))
+    ),
+    ((\+ get_param('-e', FOptions, Ends)) ->
+       (Ends='',
+	   writeln(Ends))
+    ),
+    writeln('Execute find -u URL [-d Depth,-s Start,-c Contains,-e Ends]').
+
 check_and_execute([help | _]) :-
 	writeln('=== Crawler help ==='),nl,
 	writeln('1.- Command to retrieve data from a starting URL'),nl,
