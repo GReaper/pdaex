@@ -12,3 +12,14 @@ Resolución: cómo se ha resuelto el problema
 == END ERROR ==
 
 Errores encontrados:
+
+== ERROR ==
+Comando: scan -u http://www.marca.com/ -d 2
+Error concreto: devuelve false durante la exploración
+Última URL procesada: Processing (0): http://ap.ign.com/zh/
+Detalles adicionales: 
+- Explorando la url http://ap.ign.com/zh/ en profundidad 0 devuelve false. Es
+la causante del fallo. Hay que hacer un trace y llegar al punto de error.
+Estado: sin resolver
+Resolución: 
+== END ERROR ==
