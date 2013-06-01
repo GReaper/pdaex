@@ -1243,11 +1243,16 @@ evaluate_level([L|Ls], N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Fold
 	catch(
 	      % Try section
 	      (
-	          process_url(L, N, LevelGraph, LevelCompleteGraph, Folder, VisitedLinks, NewVisitedLinks),
+	      	  (
+	          (process_url(L, N, LevelGraph, LevelCompleteGraph, Folder, VisitedLinks, NewVisitedLinks),
 	          % Graphs union
 	          ugraph_union(Graph, LevelGraph, OGraph1),
 	          ugraph_union(CompleteGraph, LevelCompleteGraph, LCGraph1),
-			  evaluate_level(Ls, N, OGraph1, OutGraph, LCGraph1, OutCompleteGraph, Folder, NewVisitedLinks)
+			  evaluate_level(Ls, N, OGraph1, OutGraph, LCGraph1, OutCompleteGraph, Folder, NewVisitedLinks)) ->
+			  true
+			  ;
+			  evaluate_level(Ls, N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks)
+	      	  )
 	      ),
 	      % Exception taking
 	      _,

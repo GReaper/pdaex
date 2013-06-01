@@ -34,6 +34,7 @@ Error concreto: devuelve false durante la exploración
 Detalles adicionales: 
 - Explorando la url http://ap.ign.com/zh/ en profundidad 1 devuelve false. Hay que hacer un trace y llegar al punto de error.
 - Podría ser fallo durante el evaluate_level
-Estado: sin resolver
-Resolución: 
+Estado: RESUELTO
+Resolución: agregado control de errores (usando IFs) en el predicado evaluate_level. Ahora en caso de fallo se ignora la URL secundaria y no se incorporan sus datos al grafo global.
+En principio este error está vinculado a la gestión de grafos, al igual que el anterior. Por ello no se aplicará el control de errores en el f_evaluate_level. En caso de que este fallo reaparezca usando el comando "find", entonces deberá aplicarse a este predicado también.
 == END ERROR ==
