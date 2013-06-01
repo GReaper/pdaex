@@ -1,4 +1,5 @@
 PENDIENTES:
+- Agregar filtrado al scanning con un "contains". En principio debería llegar con filtrar los links totales recuperados de cada web
 
 OTRAS:
 - Mejorar con HTTPS
