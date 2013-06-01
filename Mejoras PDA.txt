@@ -1,10 +1,10 @@
 PENDIENTES:
-- Prompt
 
 OTRAS:
 - Mejorar con HTTPS
 
 COMPLETADAS:
+- Prompt
 - Búsqueda de patrones en URLs con profundidad (nueva funcionalidad): startswith, endswith, contains, depth
 - En función de cómo quede el grafo con muchos enlaces, realizar un IF y
 volcar el grafo a HTML de otra forma (según el número de vértices)
