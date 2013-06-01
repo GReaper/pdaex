@@ -991,7 +991,7 @@ generate_complete_graph(BaseUrl,[L|Ls],Graph) :-
 
 % Predicate to process the base URL. We need this to apply some
 % changes to main URL and create the data dump folder
-process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
+process_main_url(URL, 0) :-
 	!,
 	% Create results folder
 	create_dump_folder(Folder, _, GraphsFolder),
@@ -1045,7 +1045,7 @@ process_main_url(URL, 0, OutGraph, OutCompleteGraph) :-
 	%name(GURI,GraphURI),
 	%html_create_graph_document(GURI,URL,OutGraph,Folder).
 
-process_main_url(URL, N, OutGraph, OutCompleteGraph) :-
+process_main_url(URL, N) :-
 	% Create results folder
 	create_dump_folder(Folder, ContentFolder, GraphsFolder),
 	% Copy css file to results, extra and graphs folders
@@ -1437,7 +1437,9 @@ check_and_execute([scan | Options]) :-
        	write('Scanning depth: '),
        	writeln(Depth))
     ),
-    write('Execute: scan -u '),write(URL),write(' -d '),writeln(Depth).
+    write('Execute: scan -u '),write(URL),write(' -d '),writeln(Depth),    
+    % Run command
+    process_main_url(URL, Depth).
 
 check_and_execute([find | Options]) :-
     format_options(Options, FOptions),
@@ -1497,7 +1499,9 @@ check_and_execute([find | Options]) :-
     write(' -d '),write(Depth),
     write(' -s '),write(Starts),
     write(' -c '),write(Contains),
-    write(' -e '),writeln(Ends).
+    write(' -e '),writeln(Ends),
+    % Run command
+    f_process_main_url(URL, Depth, Starts, Contains, Ends).
 
 check_and_execute([help | _]) :-
 	writeln('=== Crawler help ==='),nl,
@@ -1636,7 +1640,7 @@ get_number_param(Type, [ _ | ParamList ], Value) :-
 %----------------------%
 
 % Test predicate with FDI URL and no exploring depth
-test1 :- process_main_url('http://www.fdi.ucm.es/',0,_,_).
+test1 :- process_main_url('http://www.fdi.ucm.es/',0).
 
 % Test predicate to check for links list composing
 test2(L,C) :- cleanly_load_html('http://www.mitmiapp.com',DOM),
@@ -1652,30 +1656,25 @@ test4 :- cleanly_load_html('http://www.mitmiapp.com',DOM),
 	uses_js(DOM).
 
 % Test predicate with Mitmi URL and exploring depth
-test5 :- process_main_url('http://www.mitmiapp.com/',1,OG,_)
-	 ,nl,nl,write('OG -> '),writeln(OG).
+test5 :- process_main_url('http://www.mitmiapp.com/',1).
 
 % Test predicate with Fdi URL and exploring depth
-test6 :- process_main_url('http://www.fdi.ucm.es/',1,OG,_)
-	 ,nl,nl,write('OG -> '),writeln(OG).
+test6 :- process_main_url('http://www.fdi.ucm.es/',1).
 
 % Test predicate with Fdi URL and optional exploring depth
-test7(D) :- process_main_url('http://www.fdi.ucm.es/',D,OG,_)
-	 ,nl,nl,write('OG -> '),writeln(OG).
+test7(D) :- process_main_url('http://www.fdi.ucm.es/',D).
 
 % This predicate fails, it should be debugged!!!
-test8 :- process_main_url('http://www.fdi.ucm.es/',2,OG,CG)
-	 ,nl,nl,write('OG -> '),writeln(OG)
-	 ,nl,nl,write('CG -> '),writeln(CG).
+test8 :- process_main_url('http://www.fdi.ucm.es/',2).
 
 % This predicate fails, it should be debugged!!!
-test9 :- process_main_url('http://www.philosophyofinformation.net/unesco/.html',0,_,_).
+test9 :- process_main_url('http://www.philosophyofinformation.net/unesco/.html',0).
 
 % Test predicate with Fdi URL and optional exploring depth
-test10(D) :- process_main_url('http://www.fdi.ucm.es/',D,_,_).
+test10(D) :- process_main_url('http://www.fdi.ucm.es/',D).
 
 % General predicate test
-genTest(URL, Depth) :- process_main_url(URL, Depth, _, _).
+genTest(URL, Depth) :- process_main_url(URL, Depth).
 
 % General predicate test
 genTestF(URL, Depth, Starts, Contains, Ends) :- f_process_main_url(URL, Depth, Starts, Contains, Ends).
