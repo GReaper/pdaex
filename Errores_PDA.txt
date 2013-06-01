@@ -7,6 +7,8 @@ Comando: scan -u <url> -d <depth>
 Error concreto: excepción/false/error/etc (write/3 en la línea XXX)
 Última URL procesada: p. ej -> Processing (0): http://alanturing.com
 Detalles adicionales: más información del error o de depuración
+Estado: sin resolver/resuelto
+Resolución: cómo se ha resuelto el problema
 == END ERROR ==
 
 Errores encontrados:
