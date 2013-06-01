@@ -21,6 +21,19 @@ Detalles adicionales:
 - Explorando la url http://ap.ign.com/zh/ en profundidad 0 devuelve false. Es
 la causante del fallo. Hay que hacer un trace y llegar al punto de error.
 - Falla al volver sobre los add_edges de generate_graph, punto de traza 79
+Estado: RESUELTO
+Resolución: agregados condicionales al add_edges de generate graph para
+continuar sin añadir la arista que produce el error
+== END ERROR ==
+
+
+== ERROR ==
+Comando: scan -u http://ap.ign.com/zh/ -d 1
+Error concreto: devuelve false durante la exploración
+Última URL procesada: Processing (0): http://ap.ign.com/zh/
+Detalles adicionales: 
+- Explorando la url http://ap.ign.com/zh/ en profundidad 1 devuelve false. Hay que hacer un trace y llegar al punto de error.
+- Podría ser fallo durante el evaluate_level
 Estado: sin resolver
 Resolución: 
 == END ERROR ==
