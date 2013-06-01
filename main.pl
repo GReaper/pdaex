@@ -1426,6 +1426,11 @@ check_and_execute([scan | Options]) :-
     	;
        	fail
     ),
+    % Check for valid URL
+    (\+ is_valid_link(URL) ->
+    	(writeln('Invalid URL. Ensure it starts with HTTP protocol (SSL not supported).'),
+       	fail)
+    ),
     % Get -d param. This parameter is optional
     (get_number_param('-d', FOptions, Depth) ->
        	(
@@ -1439,7 +1444,8 @@ check_and_execute([scan | Options]) :-
     ),
     write('Execute: scan -u '),write(URL),write(' -d '),writeln(Depth),    
     % Run command
-    process_main_url(URL, Depth).
+    process_main_url(URL, Depth),
+    writeln('== Finished search. All info dumped to a new folder. ==').
 
 check_and_execute([find | Options]) :-
     format_options(Options, FOptions),
@@ -1453,6 +1459,11 @@ check_and_execute([find | Options]) :-
        	)
     	;
        	fail
+    ),
+    % Check for valid URL
+    (\+ is_valid_link(URL) ->
+    	(writeln('Invalid URL. Ensure it starts with HTTP protocol (SSL not supported).'),
+       	fail)
     ),
     % Get optional parameters
     (get_number_param('-d', FOptions, Depth) ->
@@ -1501,7 +1512,8 @@ check_and_execute([find | Options]) :-
     write(' -c '),write(Contains),
     write(' -e '),writeln(Ends),
     % Run command
-    f_process_main_url(URL, Depth, Starts, Contains, Ends).
+    f_process_main_url(URL, Depth, Starts, Contains, Ends),
+    writeln('== Finished search. All info dumped to a new folder. ==').
 
 check_and_execute([help | _]) :-
 	writeln('=== Crawler help ==='),nl,
