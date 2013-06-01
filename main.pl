@@ -1358,6 +1358,7 @@ crawler :-
         Codes = "exit"
     ->
     	% End prompt with "exit" command
+        writeln('=== Thanks for using Crawler1.0 ==='),
         true
     ;
     	% Process command
@@ -1414,59 +1415,89 @@ get_char(X) -->
 % Check and execute a command
 check_and_execute([scan | Options]) :-
     format_options(Options, FOptions),
-    writeln(FOptions),
+    % writeln(FOptions),
     !,
     % Get -u param. This parameter is required
     (get_needed_param('-u', FOptions, URL) ->
-       writeln(URL)
-    ;
-       fail
+    	(
+    	write('Starting URL: '),
+       	writeln(URL)
+       	)
+    	;
+       	fail
     ),
     % Get -d param. This parameter is optional
     (get_number_param('-d', FOptions, Depth) ->
-       writeln(Depth),
-       writeln('Execute scan -u -d')
-    ;
-       writeln('Execute scan -u 0')
-    )
-    .
+       	(
+    	write('Scanning depth: '),
+       	writeln(Depth)
+       	)
+       	;
+       	(Depth = 0,
+       	write('Scanning depth: '),
+       	writeln(Depth))
+    ),
+    write('Execute: scan -u '),write(URL),write(' -d '),writeln(Depth).
 
 check_and_execute([find | Options]) :-
     format_options(Options, FOptions),
-    writeln(FOptions),
+    % writeln(FOptions),
     !,
     % Get -u param. This parameter is required
     (get_needed_param('-u', FOptions, URL) ->
+    	(
+    	write('Starting URL: '),
        	writeln(URL)
+       	)
     	;
-        fail
+       	fail
     ),
     % Get optional parameters
     (get_number_param('-d', FOptions, Depth) ->
-       writeln(Depth)
-       ;
-       (Depth=0,
-       writeln(Depth))
+       	(
+    	write('Scanning depth: '),
+       	writeln(Depth)
+       	)
+       	;
+       	(Depth = 0,
+       	write('Scanning depth: '),
+       	writeln(Depth))
     ),
     (get_param('-s', FOptions, Starts) ->
+       	(
+    	write('Finding links starting with: '),
        	writeln(Starts)
-    	;
-	   	(Starts='',
+       	)
+       	;
+       	(Starts = '',
+       	write('Finding links starting with: '),
        	writeln(Starts))
     ),
     (get_param('-c', FOptions, Contains) ->
-		writeln(Contains)
-		;
-		(Contains='',
-		writeln(Contains))
+       	(
+    	write('Finding links containing: '),
+       	writeln(Contains)
+       	)
+       	;
+       	(Contains = '',
+       	write('Finding links containing: '),
+       	writeln(Contains))
     ),
     (get_param('-e', FOptions, Ends) ->
-		writeln(Ends)
-		;
-		(Ends='',
-		writeln(Ends))
+       	(
+    	write('Finding links ending with: '),
+       	writeln(Ends)
+       	)
+       	;
+       	(Ends = '',
+       	write('Finding links ending with: '),
+       	writeln(Ends))
     ),
-    writeln('Execute find -u URL [-d Depth,-s Start,-c Contains,-e Ends]').
+    write('Execute: find -u '),write(URL),
+    write(' -d '),write(Depth),
+    write(' -s '),write(Starts),
+    write(' -c '),write(Contains),
+    write(' -e '),writeln(Ends).
 
 check_and_execute([help | _]) :-
 	writeln('=== Crawler help ==='),nl,
