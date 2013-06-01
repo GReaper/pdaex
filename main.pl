@@ -1378,11 +1378,19 @@ crawler :-
         Codes = "exit"
     ->
     	% End prompt with "exit" command
+    	nl,
         writeln('=== Thanks for using Crawler1.0 ==='),
         true
     ;
+    	% Set initial time
+    	set_i_time,
     	% Process command
+    	nl,
+        writeln('=== Executing command ==='),
+        nl,
         process_command(Codes),
+        % Write elapsed time 
+        write_f_time,
         % Fail to relaunch crawler prompt
         fail
     ).
@@ -1467,6 +1475,7 @@ check_and_execute([scan | Options]) :-
     write('Execute: scan -u '),write(URL),write(' -d '),writeln(Depth),    
     % Run command
     process_main_url(URL, Depth),
+    nl,
     writeln('== Finished search. All info dumped to a new folder. ==').
 
 check_and_execute([find | Options]) :-
@@ -1537,6 +1546,7 @@ check_and_execute([find | Options]) :-
     write(' -e '),writeln(Ends),
     % Run command
     f_process_main_url(URL, Depth, Starts, Contains, Ends),
+    nl,
     writeln('== Finished search. All info dumped to a new folder. ==').
 
 check_and_execute([help | _]) :-
@@ -1670,6 +1680,24 @@ get_number_param(Type, [ (Type, Value) | _ ], Num) :-
 get_number_param(Type, [ _ | ParamList ], Value) :-
 	!,
 	get_number_param(Type, ParamList, Value).
+
+%-------------------%
+%  AUX. PREDICATES  %
+%-------------------%
+
+set_i_time:- 
+	retractall(i_time(_)), 
+	get_time(T),
+  	assert(i_time(T)).
+
+write_f_time:-
+        get_time(T2), 
+        i_time(T1), 
+        T is (T2-T1),
+        nl,
+        writeln('==============='),
+        write('Elapsed time: '),write(T), writeln(' secs.'),
+        writeln('===============').
 
 %----------------------%
 %  TESTING PREDICATES  %
