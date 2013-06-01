@@ -506,6 +506,7 @@ generate_d_graph_html(URL, Graph, Folder) :-
 	%name(GURI,GraphURI),
 	append(Folder, "/graph1.html", GraphURI),
 	name(GURI, GraphURI),
+	writeln('Generating graphs: graph1.html'),
 	html_create_graph_document(GURI, "1", URL, Graph, Folder).
 
 generate_d_graph_html(URL, Graph, Folder) :-
@@ -526,6 +527,7 @@ write_separated_graph([G|Gs], URL, Folder, Ending) :-
 	append(A1, EList, A2),
 	append(A2, ".html", GraphURI),
 	name(GURI, GraphURI),
+	write('Generating graphs: graph'),write(Ending),writeln('.html'),
 	html_create_graph_document(GURI, EList, URL, G, Folder),
 	NewEnding is Ending + 1,
 	write_separated_graph(Gs, URL, Folder, NewEnding).
@@ -1427,7 +1429,9 @@ check_and_execute([scan | Options]) :-
        	fail
     ),
     % Check for valid URL
-    (\+ is_valid_link(URL) ->
+    (is_valid_link(URL) ->
+    	writeln('Valid URL.')
+    	;
     	(writeln('Invalid URL. Ensure it starts with HTTP protocol (SSL not supported).'),
        	fail)
     ),
@@ -1461,7 +1465,9 @@ check_and_execute([find | Options]) :-
        	fail
     ),
     % Check for valid URL
-    (\+ is_valid_link(URL) ->
+    (is_valid_link(URL) ->
+    	writeln('Valid URL.')
+    	;
     	(writeln('Invalid URL. Ensure it starts with HTTP protocol (SSL not supported).'),
        	fail)
     ),
