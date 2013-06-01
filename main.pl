@@ -172,6 +172,7 @@ init_graph_js(Folder, FileName, Stream) :-
 	append(F2, ".js", JsFile),
 	name(JsFilePath, JsFile),
 	% Open file
+	write('Generating JS file: '),writeln(JsFilePath),
 	open(JsFilePath, write, Stream, [encoding(utf8)]),
 	% Init file
 	cleanly_write(Stream, '$(document).ready(function() {'), nl(Stream),
@@ -506,7 +507,7 @@ generate_d_graph_html(URL, Graph, Folder) :-
 	%name(GURI,GraphURI),
 	append(Folder, "/graph1.html", GraphURI),
 	name(GURI, GraphURI),
-	writeln('Generating graphs: graph1.html'),
+	write('Generating graph file: '),writeln(GURI),
 	html_create_graph_document(GURI, "1", URL, Graph, Folder).
 
 generate_d_graph_html(URL, Graph, Folder) :-
@@ -527,7 +528,7 @@ write_separated_graph([G|Gs], URL, Folder, Ending) :-
 	append(A1, EList, A2),
 	append(A2, ".html", GraphURI),
 	name(GURI, GraphURI),
-	write('Generating graphs: graph'),write(Ending),writeln('.html'),
+	write('Generating graph file: '),writeln(GURI),
 	html_create_graph_document(GURI, EList, URL, G, Folder),
 	NewEnding is Ending + 1,
 	write_separated_graph(Gs, URL, Folder, NewEnding).
@@ -1057,6 +1058,7 @@ process_main_url(URL, 0) :-
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
+	write('Generating file: '),writeln(URI),
 	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
 	% Dump graph in one/multiple HTML doc(s)
 	append(Directory, "graphs", GFolder),
@@ -1116,6 +1118,7 @@ process_main_url(URL, N) :-
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
+	write('Generating file: '),writeln(URI),
 	html_create_document(URI,URL,Charset,CssLinks,JSLinks,CMetas,OutGraph,OutCompleteGraph),
 	% Dump graph
 	%write('Graph ->'),writeln(OutGraph),
@@ -1274,6 +1277,7 @@ f_process_main_url(URL, 0, Starts, Contains, Ends) :-
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
+	write('Generating file: '),writeln(URI),
 	f_html_create_document(URI,URL,Starts,Contains,Ends,FilteredLinks,0).
 
 f_process_main_url(URL, N, Starts, Contains, Ends) :-
@@ -1303,6 +1307,7 @@ f_process_main_url(URL, N, Starts, Contains, Ends) :-
     append(Folder,"/",Directory),
 	append(Directory,"index.html",DirectoryURI),
 	name(URI,DirectoryURI),
+	write('Generating file: '),writeln(URI),
 	f_html_create_document(URI,URL,Starts,Contains,Ends,NewFiltered,N),
 	!.
 
