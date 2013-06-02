@@ -1470,7 +1470,7 @@ check_and_execute([scan | Options]) :-
        	fail
     ),
     % Check for valid URL
-    (is_valid_link(URL) ->
+    (startsWithHttp(URL) ->
     	writeln('Valid URL.')
     	;
     	(writeln('Invalid URL. Ensure it starts with HTTP protocol (SSL not supported).'),
@@ -1507,7 +1507,7 @@ check_and_execute([find | Options]) :-
        	fail
     ),
     % Check for valid URL
-    (is_valid_link(URL) ->
+    (startsWithHttp(URL) ->
     	writeln('Valid URL.')
     	;
     	(writeln('Invalid URL. Ensure it starts with HTTP protocol (SSL not supported).'),
