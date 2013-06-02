@@ -1,5 +1,4 @@
 PENDIENTES:
-- Agregar filtrado al scanning con un "contains". En principio debería llegar con filtrar los links totales recuperados de cada web
 
 OTRAS:
 - Mejorar con HTTPS
@@ -25,3 +24,4 @@ en aristas
 - Mejorar la toma del charset manualmente (buscando en el DOM)
 - NOTA: una posible forma es volcar el S-grafo de forma plana usando anclas en el propio documento HTML
 - Filtro de links validos con nombres de dominio más usuales -> hecho comparando con el nombre de host. Nota: probar varias webs y comprobar que esto no desestabiliza el sistema
+- Agregar filtrado al scanning con un "contains". En principio debería llegar con filtrar los links totales recuperados de cada web

@@ -1017,7 +1017,7 @@ generate_complete_graph(BaseUrl,[L|Ls],Graph) :-
 
 % Predicate to process the base URL. We need this to apply some
 % changes to main URL and create the data dump folder
-process_main_url(URL, 0) :-
+process_main_url(URL, 0, _, _, _) :-
 	!,
 	% Create results folder
 	create_dump_folder(Folder, _, GraphsFolder),
@@ -1072,7 +1072,7 @@ process_main_url(URL, 0) :-
 	%name(GURI,GraphURI),
 	%html_create_graph_document(GURI,URL,OutGraph,Folder).
 
-process_main_url(URL, N) :-
+process_main_url(URL, N, Starts, Contains, Ends) :-
 	% Create results folder
 	create_dump_folder(Folder, ContentFolder, GraphsFolder),
 	% Copy css file to results, extra and graphs folders
@@ -1088,7 +1088,9 @@ process_main_url(URL, N) :-
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
-	get_valid_links(LinkList, [], ValidLinks),
+	get_valid_links(LinkList, [], ValidLinksAux),
+	% Filter future links with user params
+	get_filtered_links(ValidLinksAux, [], Starts, Contains, Ends, ValidLinks),
 	% Calculate visited links (or being visited)
 	append(ValidLinks, [URL], VisitedLinks),
 	% Get stylesheet links
@@ -1108,6 +1110,7 @@ process_main_url(URL, N) :-
 	% DEBUG: write retrieved data
 	%write('All links ->'),writeln(LinkList),nl,
 	%write('Valid links ->'),writeln(ValidLinks),nl,
+	%write('Visited links ->'),writeln(VisitedLinks),nl,
 	%write('Css links ->'),writeln(CssLinks),nl,
 	%write('Javascript links ->'),writeln(JSLinks),nl,
 	%write('Content meta tags ->'),writeln(CMetas),nl,
@@ -1115,7 +1118,7 @@ process_main_url(URL, N) :-
 	% Reduce exploring depth
 	M is N-1,
 	% Evaluate other levels
-	evaluate_level(ValidLinks, M, Graph, OutGraph, CompleteGraph, OutCompleteGraph, ContentFolder, VisitedLinks),
+	evaluate_level(ValidLinks, M, Graph, OutGraph, CompleteGraph, OutCompleteGraph, ContentFolder, VisitedLinks, Starts, Contains, Ends),
 	% Dump graph
 	%write('Graph ->'),writeln(OutGraph),
 	%write('Complete graph ->'),writeln(OutCompleteGraph),
@@ -1140,7 +1143,7 @@ process_main_url(URL, N) :-
 % Process URL with no depth (only base URL)
 % In this case we only take all HTML info without
 % making the depth graph (only basic one)
-process_url(URL, 0, OutGraph, OutCompleteGraph, Folder, VisitedLinks, VisitedLinks) :-
+process_url(URL, 0, OutGraph, OutCompleteGraph, Folder, VisitedLinks, VisitedLinks, _, _, _) :-
 	% Don't try more
 	!,
 	% Write process info
@@ -1186,7 +1189,7 @@ process_url(URL, 0, OutGraph, OutCompleteGraph, Folder, VisitedLinks, VisitedLin
 
 % Process and URL with depth > 1. In this case we must build
 % the links graph and explore the new websites
-process_url(URL, N, OutGraph, OutCompleteGraph, Folder, VisitedLinks, NewVisitedLinks) :-
+process_url(URL, N, OutGraph, OutCompleteGraph, Folder, VisitedLinks, NewVisitedLinks, Starts, Contains, Ends) :-
 	% Write process info
 	write('Processing ('),write(N),write('): '),writeln(URL),
         % Get URL HTML as DOM structure
@@ -1194,7 +1197,9 @@ process_url(URL, N, OutGraph, OutCompleteGraph, Folder, VisitedLinks, NewVisited
 	% Get all link labels from DOM (list form)
 	get_link_list(DOM, LinkList),
 	% Get only valid links to process (HTTP)
-	get_valid_links(LinkList, VisitedLinks, ValidLinks),
+	get_valid_links(LinkList, VisitedLinks, ValidLinksAux),
+	% Filter future links with user params
+	get_filtered_links(ValidLinksAux, [], Starts, Contains, Ends, ValidLinks),
 	% Recalculate visited links (althought they haven't been visited yet)
 	append(VisitedLinks, ValidLinks, NewVisitedLinks),
 	% Get stylesheet links
@@ -1221,7 +1226,7 @@ process_url(URL, N, OutGraph, OutCompleteGraph, Folder, VisitedLinks, NewVisited
 	% Reduce exploring depth
 	M is N-1,
 	% Evaluate other levels
-	evaluate_level(ValidLinks, M, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, NewVisitedLinks),
+	evaluate_level(ValidLinks, M, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, NewVisitedLinks, Starts, Contains, Ends),
 	% Dump graph
 	%write('Graph ->'),writeln(OutGraph),
 	% HTML output dumping
@@ -1238,27 +1243,27 @@ process_url(URL, N, OutGraph, OutCompleteGraph, Folder, VisitedLinks, NewVisited
 % Evaluate remaining levels. We must take care of timeout or redirects
 % to HTTPS, so we will take all exceptions and avoid processing the
 % associated webs
-evaluate_level([], _ , Graph, Graph, CompleteGraph, CompleteGraph, _, _).
-evaluate_level([L|Ls], N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks) :-
+evaluate_level([], _ , Graph, Graph, CompleteGraph, CompleteGraph, _, _, _, _, _).
+evaluate_level([L|Ls], N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks, Starts, Contains, Ends) :-
 	catch(
 	      % Try section
 	      (
 	      	  (
-	          (process_url(L, N, LevelGraph, LevelCompleteGraph, Folder, VisitedLinks, NewVisitedLinks),
+	          (process_url(L, N, LevelGraph, LevelCompleteGraph, Folder, VisitedLinks, NewVisitedLinks, Starts, Contains, Ends),
 	          % Graphs union
 	          ugraph_union(Graph, LevelGraph, OGraph1),
 	          ugraph_union(CompleteGraph, LevelCompleteGraph, LCGraph1),
-			  evaluate_level(Ls, N, OGraph1, OutGraph, LCGraph1, OutCompleteGraph, Folder, NewVisitedLinks)) ->
+			  evaluate_level(Ls, N, OGraph1, OutGraph, LCGraph1, OutCompleteGraph, Folder, NewVisitedLinks, Starts, Contains, Ends)) ->
 			  true
 			  ;
-			  evaluate_level(Ls, N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks)
+			  evaluate_level(Ls, N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks, Starts, Contains, Ends)
 	      	  )
 	      ),
 	      % Exception taking
 	      _,
 	      % Catch section
 	      (
-		  evaluate_level(Ls, N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks))
+		  evaluate_level(Ls, N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks, Starts, Contains, Ends))
 	      ).
 
 %------------------------%
@@ -1476,7 +1481,7 @@ check_and_execute([scan | Options]) :-
     	(writeln('Invalid URL. Ensure it starts with HTTP protocol (SSL not supported).'),
        	fail)
     ),
-    % Get -d param. This parameter is optional
+    % Get optional parameters
     (get_number_param('-d', FOptions, Depth) ->
        	(
     	write('Scanning depth: '),
@@ -1487,9 +1492,43 @@ check_and_execute([scan | Options]) :-
        	write('Scanning depth: '),
        	writeln(Depth))
     ),
-    write('Execute: scan -u '),write(URL),write(' -d '),writeln(Depth),    
+    (get_param('-s', FOptions, Starts) ->
+       	(
+    	write('Scanning links starting with: '),
+       	writeln(Starts)
+       	)
+       	;
+       	(Starts = '',
+       	write('Scanning links starting with: '),
+       	writeln(Starts))
+    ),
+    (get_param('-c', FOptions, Contains) ->
+       	(
+    	write('Scanning links containing: '),
+       	writeln(Contains)
+       	)
+       	;
+       	(Contains = '',
+       	write('Scanning links containing: '),
+       	writeln(Contains))
+    ),
+    (get_param('-e', FOptions, Ends) ->
+       	(
+    	write('Scanning links ending with: '),
+       	writeln(Ends)
+       	)
+       	;
+       	(Ends = '',
+       	write('Scanning links ending with: '),
+       	writeln(Ends))
+    ),
+    write('Execute: scan -u '),write(URL),
+    write(' -d '),write(Depth),
+    write(' -s '),write(Starts),
+    write(' -c '),write(Contains),
+    write(' -e '),writeln(Ends),
     % Run command
-    process_main_url(URL, Depth),
+    process_main_url(URL, Depth, Starts, Contains, Ends),
     nl,
     writeln('== Finished search. All info dumped to a new folder. ==').
 
@@ -1719,7 +1758,7 @@ write_f_time:-
 %----------------------%
 
 % Test predicate with FDI URL and no exploring depth
-test1 :- process_main_url('http://www.fdi.ucm.es/',0).
+test1 :- process_main_url('http://www.fdi.ucm.es/',0,'','','').
 
 % Test predicate to check for links list composing
 test2(L,C) :- cleanly_load_html('http://www.mitmiapp.com',DOM),
@@ -1735,25 +1774,25 @@ test4 :- cleanly_load_html('http://www.mitmiapp.com',DOM),
 	uses_js(DOM).
 
 % Test predicate with Mitmi URL and exploring depth
-test5 :- process_main_url('http://www.mitmiapp.com/',1).
+test5 :- process_main_url('http://www.mitmiapp.com/',1,'','','').
 
 % Test predicate with Fdi URL and exploring depth
-test6 :- process_main_url('http://www.fdi.ucm.es/',1).
+test6 :- process_main_url('http://www.fdi.ucm.es/',1,'','','').
 
 % Test predicate with Fdi URL and optional exploring depth
-test7(D) :- process_main_url('http://www.fdi.ucm.es/',D).
+test7(D) :- process_main_url('http://www.fdi.ucm.es/',D,'','','').
 
 % This predicate fails, it should be debugged!!!
-test8 :- process_main_url('http://www.fdi.ucm.es/',2).
+test8 :- process_main_url('http://www.fdi.ucm.es/',2,'','','').
 
 % This predicate fails, it should be debugged!!!
-test9 :- process_main_url('http://www.philosophyofinformation.net/unesco/.html',0).
+test9 :- process_main_url('http://www.philosophyofinformation.net/unesco/.html',0,'','','').
 
 % Test predicate with Fdi URL and optional exploring depth
-test10(D) :- process_main_url('http://www.fdi.ucm.es/',D).
+test10(D) :- process_main_url('http://www.fdi.ucm.es/',D,'','','').
 
 % General predicate test
-genTest(URL, Depth) :- process_main_url(URL, Depth).
+genTest(URL, Depth, Starts, Contains, Ends) :- process_main_url(URL, Depth, Starts, Contains, Ends).
 
 % General predicate test
 genTestF(URL, Depth, Starts, Contains, Ends) :- f_process_main_url(URL, Depth, Starts, Contains, Ends).
