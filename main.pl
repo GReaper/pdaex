@@ -724,7 +724,13 @@ create_linked_rows(_, []) -->
         [].
 create_linked_rows(BaseUrl, [X|Xs]) -->
 		% Generate link URL
-		{global_url(X, BaseUrl, GLink)},
+		{
+			catch(
+				global_url(X, BaseUrl, GLink),
+				_,
+				fail
+			)
+		},
         html([ tr([
 				td(
 					a([href(GLink),target('_blank')],
