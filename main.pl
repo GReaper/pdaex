@@ -219,6 +219,9 @@ uses_style(DOM) :- xpath(DOM,//style,_);
 %---------------%
 
 % Get all Javascript links list
+% Param: the HTML DOM structure
+% Param: the JS links retrieved list
+
 get_all_js_list(DOM, List) :-
 	setof(L,
 	      xpath(DOM,//script(@type='text/javascript',@src),L),
@@ -230,9 +233,15 @@ get_all_js_list(_,[]).
 % This predicate tests if there is some JS script in the given DOM.
 % It is neccesary because a JS script may not be linked via <script>
 % label
+% Param: the HTML DOM structure
+
 uses_js(DOM) :- xpath(DOM,//script(@type='text/javascript'),_).
 
 % Predicate to init the JS file for the graph
+% Param: the main output folder (without the /js/ ending)
+% Param: the new JS file name
+% Param: output stream generated with the given params
+
 init_graph_js(Folder, FileName, Stream) :-
 	% Compose JS file path
 	append(Folder,"/js/",F1),
@@ -254,6 +263,9 @@ init_graph_js(_, _, _) :-
 	fail.
 
 % Predicate to generate one graph head
+% Param: initialized output stream where to dump all the JS code
+% Param: graph name. It will be used to generate all needed JS vars
+
 head_graph_js(Stream, Name) :-
 	name(Name, N),
 	append("var g", N, H1),
@@ -274,6 +286,9 @@ head_graph_js(_, _) :-
 	fail.
 
 % Predicate to generate one graph ending
+% Param: initialized output stream where to dump all the JS code
+% Param: graph name. It will be used to generate all needed JS code
+
 ending_graph_js(Stream, Name) :-
 	name(Name, N),
 	append("var layouter", N, E1),
@@ -300,6 +315,8 @@ ending_graph_js(_, _) :-
 	fail.
 
 % Predicate to close the JS file for the graph
+% Param: initialized output stream where to be closed
+
 close_graph_js(Stream) :-
 	cleanly_write(Stream, '});'),
 	% Close file
@@ -311,7 +328,11 @@ close_graph_js(_) :-
 	writeln('Please, check you have got the right permissions.'),
 	fail.
 
-% Predicate to dump the complete graph into the JS file
+% Predicate to dump the complete graph into the JS file.
+% Param: list of graph edges
+% Param: initialized output stream
+% Param: graph name to be used in JS code
+
 full_js_graph([], _, _).
 full_js_graph([V1-V2|Xs], Stream, Name) :-
 		name(Name, N1),
@@ -331,6 +352,11 @@ full_js_graph([_|Xs], Stream, Name) :-
 		full_js_graph(Xs, Stream, Name),!.
 
 % Predicate to dump one graph section into the JS file
+% Param: the root node
+% Param: list of connected nodes to the given root
+% Param: initialized output stream
+% Param: graph name to be used in JS code
+
 partial_js_graph(_, [], _, _).
 partial_js_graph(Root, [X|Xs], Stream, Name) :-
 		name(Name, N1),
@@ -354,6 +380,9 @@ partial_js_graph(Root, [_|Xs], Stream, Name) :-
 %-----------------%
 
 % Get all meta elems in the given HTML (list form)
+% Param: the HTML DOM structure
+% Param: the retrieved meta list
+
 get_all_meta_list(DOM, List) :-
 	setof(L, xpath(DOM,//meta,L), List),!.
 % Clause needed to avoid JS retrieving problems. If it is not set,
@@ -361,6 +390,9 @@ get_all_meta_list(DOM, List) :-
 get_all_meta_list(_, []).
 
 % Get HTML5 charset metatag
+% Param: list of metas where to search
+% Param: the HTML5 charset tag or not found string
+
 get_html_charset([],'No defined HTML5 charset tag').
 get_html_charset([M|_], Charset) :-
 	xpath(M,//meta(@charset),Charset),!.
@@ -369,6 +401,9 @@ get_html_charset([_|MetaTags],Charset) :-
 
 % Get all content metatags. They will be grouped into pairs with the
 % form ContentType-ContentValue
+% Param: list of metas where to perform the search
+% Param: list of retrieved content and http-equiv metas in pairs key:value
+
 get_all_content_meta([], []).
 get_all_content_meta([M|MetaTags], [X:Y|CMetas]) :-
 	xpath(M,//meta(@name),X),
