@@ -1037,11 +1037,17 @@ not_headed_node([_|Xs], N) :-
 %---------------------------%
 
 % Predicate to cleanly write the given text to the output stream
+% Param: initialized output stream
+% Param: text to be written
+
 cleanly_write(Stream, Text) :-
 	atom_chars(Text, CharList),
 	dump_to_stream(CharList, Stream).
 	
 % Dump the given char list into Stream
+% Param: char list to be dumped
+% Param: initialized output stream
+
 dump_to_stream([], _).
 dump_to_stream([X|Xs], Stream) :-
 	put(Stream, X),
@@ -1053,6 +1059,9 @@ dump_to_stream([_|Xs], Stream) :-
 
 % Predicate to copy one file to another. It will be used to
 % auto copy the CSS file to every output folder
+% Param: origin file path
+% Param: destination file path
+
 copy(File1, File2) :-
 	write('Copying file: from '),write(File1),write(' to '),writeln(File2),
 	open(File1,read,Stream1, [encoding(utf8)]),
@@ -1065,6 +1074,10 @@ copy(File1, File2) :-
 copy(_, _).
 
 % Predicate to create the ouput folder (scanning crawler)
+% Param: output main folder
+% Param: output content folder
+% Param: output graphs folder
+
 create_dump_folder(Folder, ContentFolder, GraphsFolder) :-
 	get_time(TimeStamp),
 	stamp_date_time(TimeStamp,LocalDate,local),
@@ -1105,6 +1118,8 @@ create_dump_folder(_, _, _) :-
 	fail.
 
 % Predicate to create the ouput folder (finding crawler)
+% Param: output main folder
+
 f_create_dump_folder(Folder) :-
 	get_time(TimeStamp),
 	stamp_date_time(TimeStamp,LocalDate,local),
@@ -1135,6 +1150,8 @@ f_create_dump_folder(_) :-
 	fail.
 
 % Predicate to copy the CSS files to the ouput folder
+% Param: output root folder. CSS folder will be generated based on this
+
 generate_css_file(Folder) :-
 	append(Folder,"/css",CssDirectory),
 	name(FNm, CssDirectory),
@@ -1148,6 +1165,8 @@ generate_css_file(_) :-
 	writeln('Please, check you have got the right permissions.').
 
 % Predicate to copy the JS files to the ouput folder
+% Param: output root folder. JS folder will be generated based on this
+
 generate_js_files(Folder) :-
 	append(Folder,"/graphs/js",JsDirectory),
 	name(FNm, JsDirectory),
@@ -1187,6 +1206,10 @@ generate_js_files(_) :-
 % Generate a graph in depth with the given params. The entries
 % will be reduced to host name. This graph will be used to show
 % the graphical hosts relations graph
+% Param: root URL
+% Param: link list connected to root
+% Param: output generated graph
+
 generate_graph(BaseUrl,[],Graph) :-
 	% Get host name (if possible)
 	extract_host_name(BaseUrl,Host),
@@ -1209,6 +1232,10 @@ generate_graph(BaseUrl,[L|Ls],Graph) :-
 
 % Generate a graph in depth with the given params. In this case we
 % won't trim to the host name
+% Param: root URL
+% Param: link list connected to root
+% Param: output generated graph
+
 generate_complete_graph(BaseUrl,[],Graph) :-
 	% Set graph root (base url)
 	add_vertices([],[BaseUrl],Graph),!.
