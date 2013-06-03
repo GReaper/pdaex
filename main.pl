@@ -7,35 +7,63 @@
 % STRING PREDICATES %
 %-------------------%
 
-% Test wither an URL ends with the given pattern
+% Test whether an URL ends with the given pattern
+% Param: the URL to be tested
+% Param: the pattern to be applied
+
 endsWith(URL, Pattern) :- sub_string(URL,_,_,0,Pattern).
 
 % Test whether an URL starts with the given pattern
+% Param: the URL to be tested
+% Param: the pattern to be applied
+
 startsWith(URL, Pattern) :- sub_string(URL,0,_,_,Pattern).
 
 % Test whether an URL contains the given pattern
+% Param: the URL to be tested
+% Param: the pattern to be applied
+
 containsPattern(URL, Pattern) :- sub_string(URL, _, _, _, Pattern).
 
 % Test whether an URL starts with 'http://'
+% Param: the URL to be tested
+
 startsWithHttp(URL) :- sub_string(URL,0,_,_,'http://').
 
 % Test whether an URL starts with 'https://'
+% Param: the URL to be tested
+
 startsWithHttps(URL) :- sub_string(URL,0,_,_,'https://').
 
-% Extract host name from the given URL
+% Extract host name from the given URL. It uses the aux.
+% predicate get_host
+% Param: the URL from which the host will be extracted
+% Param: the resulting host name
+
 extract_host_name(URL,Host) :-
 		parse_url(URL, Attr),
 		get_host(Attr,Host),!.
 extract_host_name(URL,URL).
 
-% This function gets the host name from the URL attributes
+% This predicate gets the host name from the URL attributes
 % retrieved with URL library
+% Param: list of URL attributes
+% Param: host name extracted from those attributes
+
 get_host([],_) :- fail.
 get_host([host(H) | _],H) :- !.
 get_host([_ | Ls], H) :- get_host(Ls, H).
 
-% DCG to replace characters
-eos([], []).
+% DCG and two predicates to replace characters. 
+% It will be mainly used to obtain the file names
+% from the retrieved URLs.
+% Param: pattern to be replaced
+% Param: replacing pattern
+% Param: initial string 
+% Param: resulting string
+
+substitute(Find, Replace, Request, Result) :-
+        phrase(replace(Find, Replace), Request, Result).
 
 replace(_, _) --> call(eos), !.
 replace(Find, Replace), Replace -->
@@ -46,8 +74,7 @@ replace(Find, Replace), [C] -->
         [C],
         replace(Find, Replace).
 
-substitute(Find, Replace, Request, Result) :-
-        phrase(replace(Find, Replace), Request, Result).
+eos([], []).
 
 %------------------%
 % LINKS PREDICATES %
