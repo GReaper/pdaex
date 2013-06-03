@@ -82,6 +82,8 @@ eos([], []).
 
 % Test whether an URL is a valid link to be processed. Actually we
 % only support HTTP (not SSL) connections.
+% Param: the URL to be tested
+
 is_valid_link(URL) :- startsWithHttp(URL),
 	% We only support exploring html valid formats
 	(
@@ -89,7 +91,10 @@ is_valid_link(URL) :- startsWithHttp(URL),
 	    is_valid_host(URL)
 	).
 
-% Test if an URL is a valid HTML content output
+% Test if an URL is a valid HTML content output. It only
+% checks for the most usual endings.
+% Param: the URL to be tested
+
 is_valid_output(URL) :-
 	    endsWith(URL,'/');
 	    endsWith(URL,'.html');
@@ -107,30 +112,46 @@ is_valid_output(URL) :-
 
 % Test if an URL is a valid domain name (without index.xxxx)
 % We will use the host name to validate the URL
+% Param: the URL to be tested
+
 is_valid_host(URL) :-
 		extract_host_name(URL, Host),
 		endsWith(URL, Host).
 
-% Get all link labels from a DOM structure
+% Get all link labels from a DOM structure. It is actually unused
+% Param: the HTML DOM structure
+% Param: the output link labels
+
 get_link_labels(DOM, HREF):-
 	% Using XPath expression to retrieve links list
 	xpath(DOM,//a(@href),HREF).
 
 % Get all links list
+% Param: the HTML DOM structure
+% Param: the output link list
+
 get_all_link_list(DOM, List) :-
 	setof(L, xpath(DOM,//a(@href),L), List).
 
 % Get all HTTP or HTTPS links (in list form)
+% Param: the HTML DOM structure
+% Param: the output link list
+
 get_link_list(DOM, List) :-
 	setof(L,
 	      (xpath(DOM,//a(@href),L),
 	      (startsWithHttp(L);startsWithHttps(L))),
 	      List),!.
-% Clause needed to avoid JS retrieving problems. If it is not set,
+% Clause needed to avoid retrieving problems. If it is not set,
 % sometimes false can be returned and stop execution
 get_link_list(_,[]).
 
-% Get only valid links
+% Get only valid links. This predicates avoid scanning already
+% visited links.
+% Param: the actual web URL list
+% Param: input list with the visited links until now
+% Param: output list with the new valid links to visit
+
 get_valid_links([],_,[]).
 get_valid_links([X|Xs], VisitedLinks, [X|Ys]) :-
 	\+member(X, VisitedLinks),
@@ -140,13 +161,28 @@ get_valid_links([X|Xs], VisitedLinks, [X|Ys]) :-
 get_valid_links([_|Xs], VisitedLinks, Ys) :-
 	get_valid_links(Xs, VisitedLinks, Ys).
 
-% This predicate tests if the given URL passes all user filters
+% This predicate tests if the given URL passes all user filters. It will
+% be used when the user wants -c,-s,-e params
+% Param: URL to be tested
+% Param: pattern to be tested as starting of the URL
+% Param: pattern to be tested if it is contained in the URL
+% Param: patter to be tested as ending of the URL
+
 filter_url(URL, Starts, Contains, Ends) :-
 	startsWith(URL, Starts),
 	containsPattern(URL, Contains),
 	endsWith(URL, Ends).
 
-% Filter retrieved links with the given patterns
+% Filter retrieved links with the given patterns. It uses the aux. predicate
+% filter_url.
+% Param: link list to be checked
+% Param: link list of already taken URLs. It can be used to avoid scanning
+%        already visited URLs.
+% Param: pattern to be tested as starting of each URL
+% Param: pattern to be tested if it is contained in each URL
+% Param: patter to be tested as ending of each URL
+% Param: resulting filtered link list
+
 get_filtered_links([], _, _, _, _, []).
 get_filtered_links([X|CheckLinks], TakenLinks, Starts, Contains, Ends, [X|Ys]) :-
 	\+member(X, TakenLinks),
@@ -161,6 +197,9 @@ get_filtered_links([_|CheckLinks], TakenLinks, Starts, Contains, Ends, NewLinks)
 %----------------%
 
 % Get all stylesheet links list
+% Param: the HTML DOM structure from which the style links will be retrieved
+% Param: retrieved style links list
+
 get_all_style_list(DOM, List) :-
 	setof(L, xpath(DOM,//link(@rel='stylesheet',@href),L), List),!.
 % Clause needed to avoid style retrieving problems. If it is not set,
@@ -170,6 +209,8 @@ get_all_style_list(_,[]).
 % This predicate tests if there is some style in the given HTML.
 % It is neccesary because a style section may not be linked via <link>
 % label
+% Param: the HTML DOM structure for the search
+
 uses_style(DOM) :- xpath(DOM,//style,_);
                    xpath(DOM,//link(@type='text/css'),_).
 
