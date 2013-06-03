@@ -1257,6 +1257,12 @@ generate_complete_graph(BaseUrl,[L|Ls],Graph) :-
 
 % Predicate to process the base URL. We need this to apply some
 % changes to main URL and create the data dump folder
+% Param: starting URL
+% Param: scanning depth
+% Param: links starting filter
+% Param: links containing filter
+% Param: links ending filter
+
 process_main_url(URL, 0, _, _, _) :-
 	!,
 	% Create results folder
@@ -1383,6 +1389,17 @@ process_main_url(URL, N, Starts, Contains, Ends) :-
 % Process URL with no depth (only base URL)
 % In this case we only take all HTML info without
 % making the depth graph (only basic one)
+% Param: starting URL
+% Param: scanning depth
+% Param: output hosts graph
+% Param: output complete graph
+% Param: root output folder
+% Param: list with the already visited list
+% Param: output list with the new visited links
+% Param: links starting filter
+% Param: links containing filter
+% Param: links ending filter
+
 process_url(URL, 0, OutGraph, OutCompleteGraph, Folder, VisitedLinks, VisitedLinks, _, _, _) :-
 	% Don't try more
 	!,
@@ -1483,6 +1500,18 @@ process_url(URL, N, OutGraph, OutCompleteGraph, Folder, VisitedLinks, NewVisited
 % Evaluate remaining levels. We must take care of timeout or redirects
 % to HTTPS, so we will take all exceptions and avoid processing the
 % associated webs
+% Param: list with the remaining links for this level
+% Param: scanning deph
+% Param: old hosts graph
+% Param: output new hosts graph
+% Param: old complete graph
+% Param: output new complete graph
+% Param: root folder
+% Param: list with the visited links
+% Param: links starting filter
+% Param: links containing filter
+% Param: links ending filter
+
 evaluate_level([], _ , Graph, Graph, CompleteGraph, CompleteGraph, _, _, _, _, _).
 evaluate_level([L|Ls], N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks, Starts, Contains, Ends) :-
 	catch(
@@ -1512,6 +1541,12 @@ evaluate_level([L|Ls], N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Fold
 
 % Predicate to process the base URL. We need this to apply some
 % changes to main URL and create the data dump folder
+% Param: starting URL
+% Param: scanning depth
+% Param: links starting filter
+% Param: links containing filter
+% Param: links ending filter
+
 f_process_main_url(URL, 0, Starts, Contains, Ends) :-
 	!,
 	% Create results folder
@@ -1569,6 +1604,16 @@ f_process_main_url(URL, N, Starts, Contains, Ends) :-
 % Process URL with no depth (only base URL)
 % In this case we only take all HTML info without
 % making the depth graph (only basic one)
+% Param: starting URL
+% Param: scanning depth
+% Param: list with the already visited list
+% Param: output list with the new visited links
+% Param: links starting filter
+% Param: links containing filter
+% Param: links ending filter
+% Param: list with the already filtered links
+% Param: output list with the new filtered links
+
 f_process_url(URL, 0, VisitedLinks, VisitedLinks, Starts, Contains, Ends, FLinks, NFLinks) :-
 	% Don't try more
 	!,
@@ -1609,6 +1654,15 @@ f_process_url(URL, N, VisitedLinks, NewVisitedLinks, Starts, Contains, Ends, FLi
 % Evaluate remaining levels. We must take care of timeout or redirects
 % to HTTPS, so we will take all exceptions and avoid processing the
 % associated webs
+% Param: list with the remaining links for this level
+% Param: scanning deph
+% Param: list with the visited links
+% Param: links starting filter
+% Param: links containing filter
+% Param: links ending filter
+% Param: list with already filtered links
+% Param: output list with the new filtered links
+
 f_evaluate_level([], _ , _, _, _, _, Links, Links).
 f_evaluate_level([L|Ls], N, VisitedLinks, Starts, Contains, Ends, FLinks, NFLinks) :-
 	catch(
@@ -1630,6 +1684,7 @@ f_evaluate_level([L|Ls], N, VisitedLinks, Starts, Contains, Ends, FLinks, NFLink
 %---------------%
 
 % Main application entry point
+
 crawler :-
     prompt(_, 'crawler1.0 > '),
     repeat,
@@ -1655,6 +1710,9 @@ crawler :-
         fail
     ).
 
+% Predicate to start the user input processing
+% Param: code list with the user entry
+
 process_command(Codes) :-
     % Convert the list of codes to a list of code lists of words
     (
@@ -1667,6 +1725,8 @@ process_command(Codes) :-
 
 % DCG to split the user entry by spaces to retrieve all
 % commands and parameters
+% Param: code list to be splitted
+
 split_by_spaces([A|As]) -->
     rm_spaces(_),
     get_chars([X|Xs]),
@@ -1677,15 +1737,24 @@ split_by_spaces([A|As]) -->
     split_by_spaces(As).
 split_by_spaces([]) --> [].
 
+% DCG to consume all valid chars (not spaces) from the entry list
+% Param: initial code list
+
 get_chars([X|Xs]) --> 
 	get_char(X), !, 
 	get_chars(Xs).
 get_chars([]) --> [].
 
+% DCG to consume all spaces from the entry list
+% Param: initial code list
+
 rm_spaces([X|Xs]) --> 
 	get_space(X), !, 
 	rm_spaces(Xs).
 rm_spaces([]) --> [].
+
+% DCG to check for spaces
+% Param: character code to be checked
 
 get_space(X) --> 
 	[X], 
@@ -1693,6 +1762,10 @@ get_space(X) -->
 		% Check for space code
 		code_type(X, space)
 	}.
+
+% DCG to check for chars except spaces
+% Param: character code to be checked
+
 get_char(X) --> 
 	[X], 
 	{
@@ -1701,6 +1774,8 @@ get_char(X) -->
 	}.
 
 % Check and execute a command
+% Param: atom list with the command in the head and all options as the tail
+
 check_and_execute([scan | Options]) :-
     format_options(Options, FOptions),
     % writeln(FOptions),
@@ -1886,6 +1961,9 @@ check_and_execute(_) :-
 	!. 
 
 % Predicate to format the received options list
+% Param: input command parameters list
+% Param: output formatted options list
+
 format_options([],[]).
 format_options([ Type, Value | ROp], FOp) :-
 	format_options(ROp, FO1),
@@ -1896,6 +1974,10 @@ format_options :-
     fail.
 
 % Predicate to get one needed param from the list
+% Param: type of param to be searched (i. e.: '-u')
+% Param: list of user params
+% Param: output value for that param
+
 get_needed_param(Type , [], _) :-
 	!,
 	name(Type, C1),
@@ -1924,6 +2006,10 @@ get_needed_param(Type, [ _ | ParamList ], Value) :-
 	get_needed_param(Type, ParamList, Value).
 
 % Predicate to get one optional param from the list
+% Param: type of param to be searched (i. e.: '-c')
+% Param: list of user params
+% Param: output value for that param
+
 get_param(_ , [], _) :-
 	!,
     fail.
@@ -1948,6 +2034,10 @@ get_param(Type, [ _ | ParamList ], Value) :-
 
 % Predicate to get one number param from the list. In this case 
 % we must ensure the numbes is greater or equal than zero
+% Param: type of param to be searched (i. e.: '-d')
+% Param: list of user params
+% Param: output value for that param
+
 get_number_param(_ , [], _) :-
 	!,
     fail.
@@ -1983,10 +2073,15 @@ get_number_param(Type, [ _ | ParamList ], Value) :-
 %  AUX. PREDICATES  %
 %-------------------%
 
+% Set the initial time to be compared once the execution finishes
+
 set_i_time:- 
 	retractall(i_time(_)), 
 	get_time(T),
   	assert(i_time(T)).
+
+% Predicate to compare the initial with the ending time and ouputs
+% the elapsed time
 
 write_f_time:-
         get_time(T2), 
