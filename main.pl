@@ -422,6 +422,9 @@ get_all_content_meta([_|MetaTags], CMetas) :-
 
 % Load an HTML given its URL. At the moment only HTTP connections work properly.
 % SSL support will be added later (if possible).
+% Param: input URL to load
+% Param: output HTML DOM structure
+
 load_html(URL, DOM) :-
 	catch(
 	% Try section
@@ -449,12 +452,23 @@ load_html(URL, DOM) :-
 
 % This predicate is needed in order to avoid some html reading errors
 % and continue executing the crawler
+% Param: input URL to load
+% Param: output HTML DOM structure
+
 cleanly_load_html(URL,DOM) :-
 	load_html(URL,DOM),!.
 cleanly_load_html(_,[]).
 
 % This predicate creates an HTML output document and dumps
 % all retrieved data (finding crawler)
+% Param: path where the new output file will be created
+% Param: main title for the output HTML (in this case, the base URL)
+% Param: pattern with the user starting param
+% Param: pattern with the user contains param
+% Param: pattern with the user ending param
+% Param: retrieved links (already filtered)
+% Param: finding depth
+
 f_html_create_document(URI,Title,Starts,Contains,Ends,Links,Depth) :-
 	phrase(f_html_structure(Title,Starts,Contains,Ends,Links,Depth), Tokens),
 	open(URI, write, Stream, [encoding(utf8)]),
@@ -462,6 +476,13 @@ f_html_create_document(URI,Title,Starts,Contains,Ends,Links,Depth) :-
 	close(Stream).
 
 % Predicate to generate the HTML structure to be dumped
+% Param: main title for the output HTML (in this case, the base URL)
+% Param: pattern with the user starting param
+% Param: pattern with the user contains param
+% Param: pattern with the user ending param
+% Param: retrieved links (already filtered)
+% Param: finding depth
+
 f_html_structure(Title,Starts,Contains,Ends,Links,Depth) -->
 		page([title(['URL filter']),
 			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')]),
@@ -514,6 +535,15 @@ f_html_structure(Title,Starts,Contains,Ends,Links,Depth) -->
 
 % This predicate creates an HTML output document and dumps
 % all retrieved data (retrieving crawler)
+% Param: path where the new output file will be created
+% Param: main title for the output HTML (in this case, the base URL)
+% Param: retrieved HTML5 charset
+% Param: all style links list
+% Param: all JS links list
+% Param: all meta list
+% Param: hosts graph
+% Param: complete URLs graph
+
 html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) :-
 	phrase(html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph), Tokens),
 	open(URI, write, Stream, [encoding(utf8)]),
@@ -521,6 +551,14 @@ html_create_document(URI,Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) :-
 	close(Stream).
 
 % Predicate to generate the HTML structure to be dumped
+% Param: main title for the output HTML (in this case, the base URL)
+% Param: retrieved HTML5 charset
+% Param: all style links list
+% Param: all JS links list
+% Param: all meta list
+% Param: hosts graph
+% Param: complete URLs graph
+
 html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
 		page([title([Title]),
 			meta(['http-equiv'('content-type'),content('text/html; charset=utf-8')]),
@@ -599,6 +637,10 @@ html_structure(Title,Charset,Styles,Js,Metas,Graph,CompleteGraph) -->
              ]).
 
 % Predicate to split the given graph in multiple HTML docs
+% Param: starting root URL
+% Param: retrieved graph
+% Param: main output folder (without /graphs/)
+
 generate_d_graph_html(URL, Graph, Folder) :-
 	vertices(Graph, V),
 	% Generate a single document only if there are
@@ -623,6 +665,12 @@ generate_d_graph_html(URL, Graph, Folder) :-
 	write_separated_graph(SepGraph, URL, Folder, 1).
 
 % Predicate to help writing the bigger graphs in multiple html docs
+% Param: retrieved s-graph
+% Param: starting root URL
+% Param: main output folder (without /graphs/)
+% Param: actual graph ending. It must be an integer. It will be used to
+%        generate all output files name
+
 write_separated_graph([], _, _, _) :- !.
 write_separated_graph([G|Gs], URL, Folder, Ending) :- 
 	!,	
@@ -636,7 +684,10 @@ write_separated_graph([G|Gs], URL, Folder, Ending) :-
 	NewEnding is Ending + 1,
 	write_separated_graph(Gs, URL, Folder, NewEnding).
 
-% Filter graph to avoid writing empty subgraphs
+% Filter graph to avoid writing empty subgraphs.
+% Param: starting graph
+% Param: resulting filtered graph
+
 filter_graph([], []).
 filter_graph([_-[]|Xs], FilteredG) :-
 	!,
@@ -647,6 +698,9 @@ filter_graph([X|Xs], FilteredG) :-
 	append([X], FG1, FilteredG).
 
 % Predicate to separate the given graph in sections of N to N elems
+% Param: initial graph
+% Param: resulting splitted graph
+
 separate_graph([], []) :- !.
 separate_graph(Graph, Result) :-
 	!,
@@ -656,6 +710,11 @@ separate_graph(Graph, Result) :-
 	
 % Predicate to take N elems from a given list. In this case 20. We don't
 % parametrize this predicate as we only need 20 elems
+% Param: initial list
+% Param: remaining list
+% Param: list with the taken elements
+% Param: number of elements taken until now
+
 take_n([], [], [], _) :- !.
 take_n(Remaining, Remaining, [], 20) :- !.
 take_n([X|Xs], Remaining, Taken, N) :- 
@@ -666,11 +725,23 @@ take_n([X|Xs], Remaining, Taken, N) :-
 
 % This predicate creates an HTML output document and dumps
 % the hosts graph
+% Param: path for the actual HTML graph doc
+% Param: actual JS ending (due to multiple graphs)
+% Param: HTML title (in this case, the root URL)
+% Param: hosts graph
+% Param: main output folder
+
 html_create_graph_document(URI,JSEnd,Title,Graph,Folder) :-
 	phrase(html_graph_structure(Title,JSEnd,Graph,Folder), Tokens),
 	open(URI, write, Stream, [encoding(utf8)]),
 	print_html(Stream,Tokens),
 	close(Stream).
+
+% DCG to generate the output HTML graphs structure
+% Param: HTML title (in this case, the root URL)
+% Param: actual JS ending (due to multiple graphs)
+% Param: hosts graph
+% Param: main output folder
 
 html_graph_structure(Title,JSEnd,Graph,Folder) -->
 		{
@@ -693,6 +764,11 @@ html_graph_structure(Title,JSEnd,Graph,Folder) -->
             ]).
 
 % Predicate to dump the graph HTML content
+% Param: HTML title (in this case, the root URL)
+% Param: actual JS ending (due to multiple graphs)
+% Param: hosts graph
+% Param: main output folder
+
 dump_graph_to_html(Title,JSEnd,Graph,Folder) -->
 	{edges(Graph, V),
 	length(V, L),
@@ -716,6 +792,11 @@ dump_graph_to_html(_,_,_,_) -->
 	[].
 
 % Generate one graph JS
+% Param: HTML title (in this case, the root URL)
+% Param: actual JS ending (due to multiple graphs)
+% Param: hosts graph
+% Param: main output folder
+
 dump_one_graph(Title,JSEnd,Graph,Folder) -->
 	{
 		edges(Graph, Edges),
@@ -736,6 +817,10 @@ dump_one_graph(Title,JSEnd,Graph,Folder) -->
 dump_one_graph(_,_,_) --> [].
 
 % Generate multiple graphs JS
+% Param: graph to be dumped
+% Param: initialized output stream
+% Param: graph name (to be used in JS code)
+
 dump_multiple_graphs([],_,_) --> [].
 
 % Don't dump empty roots
@@ -772,7 +857,8 @@ dump_multiple_graphs([_|Xs],Stream,Name) -->
 	{!},
 	dump_multiple_graphs(Xs,Stream,Name).
 
-% Predicate to create the output HTML index
+% DCG to create the output HTML index
+
 create_index -->
 	    {name(CCharset,"#Charset")},
 	    {name(CStyle,"#Style")},
@@ -812,6 +898,8 @@ create_index -->
 		]).
 
 % Create all the HTML rows structure based on the given tags list
+% Param: list containing the rows elements
+
 create_rows([]) -->
         [].
 create_rows([X|Xs]) -->
@@ -823,6 +911,9 @@ create_rows([X|Xs]) -->
 % Create all the HTML rows structure based on the given tags list.
 % The difference between upper predicate is that it generates links to
 % the real contents
+% Param: base url to compose and link to the complete path of every resource
+% Param: list of row elements
+
 create_linked_rows(_, []) -->
         [].
 create_linked_rows(BaseUrl, [X|Xs]) -->
@@ -850,7 +941,9 @@ create_linked_rows(BaseUrl, [X|Xs]) -->
              ]),!,
         create_linked_rows(BaseUrl, Xs).
 
-% Predicate for meta tags rows
+% DCG for meta tags rows
+% Param: list of metas in key:value format
+
 create_meta_rows([]) -->
         [].
 create_meta_rows([T1:C1|Xs]) -->
@@ -861,7 +954,11 @@ create_meta_rows([T1:C1|Xs]) -->
              ]),
         create_meta_rows(Xs).
 
-% Predicate to dump the complete graph in text form
+% DCG to dump the complete graph in text form
+% Param: complete graph to be dumped
+% Param: the complete graph. Needed to check for headed nodes
+% Param: this params indicates whether to write or not external links
+
 dump_complete_graph([], _, _) -->
 		[].
 % Do not write isolated nodes
@@ -885,6 +982,10 @@ dump_complete_graph([_|Xs], Graph, External) -->
 
 % Aux. predicate to dump every link neighbour. "External" param will be used to
 % write or not external links.
+% Param: list of neighbours from one graph node
+% Param: complete graph. Needed to check for headed nodes
+% Param: this param indicates whether to write or not external links
+
 generate_link_neigh([], _, _) -->
 		[].
 generate_link_neigh([N|Xs], Graph, External) -->
@@ -924,6 +1025,9 @@ generate_link_neigh([_|Xs], Graph, External) -->
 
 % Predicate to test if the given node will be on
 % the graph headers (used for anchors)
+% Param: complete graph
+% Param: node to be tested
+
 not_headed_node([N-[]|_], N).
 not_headed_node([_|Xs], N) :-
 	not_headed_node(Xs, N).
