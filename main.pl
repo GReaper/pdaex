@@ -54,12 +54,12 @@ get_host([],_) :- fail.
 get_host([host(H) | _],H) :- !.
 get_host([_ | Ls], H) :- get_host(Ls, H).
 
-% DCG and two predicates to replace characters. 
+% DCG and two predicates to replace characters.
 % It will be mainly used to obtain the file names
 % from the retrieved URLs.
 % Param: pattern to be replaced
 % Param: replacing pattern
-% Param: initial string 
+% Param: initial string
 % Param: resulting string
 
 substitute(Find, Replace, Request, Result) :-
@@ -500,27 +500,27 @@ f_html_structure(Title,Starts,Contains,Ends,Links,Depth) -->
                           ]),
 				       tr([ td([width('50%')],
 					       'Root URL:'),
-					    	td([width('50%')],
+						td([width('50%')],
 					       Title)
 		                          ]),
 				       tr([ td([width('50%')],
 					       'Depth:'),
-					    	td([width('50%')],
+						td([width('50%')],
 					       Depth)
 		                          ]),
 				       tr([ td([width('50%')],
 					       'URLs starting with:'),
-					    	td([width('50%')],
+						td([width('50%')],
 					       Starts)
 		                          ]),
 				       tr([ td([width('50%')],
 					       'URLs containing:'),
-					    	td([width('50%')],
+						td([width('50%')],
 					       Contains)
 		                          ]),
 				       tr([ td([width('50%')],
 					       'URLs ending with:'),
-					    	td([width('50%')],
+						td([width('50%')],
 					       Ends)
 		                          ])
                      ]),
@@ -647,7 +647,7 @@ generate_d_graph_html(URL, Graph, Folder) :-
 	% less than N elements
 	length(V, L),
 	L < 20,!,
-	%append(Folder, "/graphs", GDir),	
+	%append(Folder, "/graphs", GDir),
 	%append(Directory,"graph.html",GraphURI),
 	%name(GURI,GraphURI),
 	append(Folder, "/graph1.html", GraphURI),
@@ -672,8 +672,8 @@ generate_d_graph_html(URL, Graph, Folder) :-
 %        generate all output files name
 
 write_separated_graph([], _, _, _) :- !.
-write_separated_graph([G|Gs], URL, Folder, Ending) :- 
-	!,	
+write_separated_graph([G|Gs], URL, Folder, Ending) :-
+	!,
 	name(Ending, EList),
 	append(Folder, "/graph", A1),
 	append(A1, EList, A2),
@@ -707,7 +707,7 @@ separate_graph(Graph, Result) :-
 	take_n(Graph, Remaining, Taken, 0),
 	separate_graph(Remaining, E1),
 	append([Taken], E1, Result).
-	
+
 % Predicate to take N elems from a given list. In this case 20. We don't
 % parametrize this predicate as we only need 20 elems
 % Param: initial list
@@ -717,7 +717,7 @@ separate_graph(Graph, Result) :-
 
 take_n([], [], [], _) :- !.
 take_n(Remaining, Remaining, [], 20) :- !.
-take_n([X|Xs], Remaining, Taken, N) :- 
+take_n([X|Xs], Remaining, Taken, N) :-
 	!,
 	M is N+1,
 	take_n(Xs, Remaining, TAux, M),
@@ -814,7 +814,7 @@ dump_one_graph(Title,JSEnd,Graph,Folder) -->
 			),
 		div([id('canvas1')],'')
 	]).
-dump_one_graph(_,_,_) --> [].
+dump_one_graph(_,_,_,_) --> [].
 
 % Generate multiple graphs JS
 % Param: graph to be dumped
@@ -1043,7 +1043,7 @@ not_headed_node([_|Xs], N) :-
 cleanly_write(Stream, Text) :-
 	atom_chars(Text, CharList),
 	dump_to_stream(CharList, Stream).
-	
+
 % Dump the given char list into Stream
 % Param: char list to be dumped
 % Param: initialized output stream
@@ -1517,7 +1517,7 @@ evaluate_level([L|Ls], N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Fold
 	catch(
 	      % Try section
 	      (
-	      	  (
+		  (
 	          (process_url(L, N, LevelGraph, LevelCompleteGraph, Folder, VisitedLinks, NewVisitedLinks, Starts, Contains, Ends),
 	          % Graphs union
 	          ugraph_union(Graph, LevelGraph, OGraph1),
@@ -1526,7 +1526,7 @@ evaluate_level([L|Ls], N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Fold
 			  true
 			  ;
 			  evaluate_level(Ls, N, Graph, OutGraph, CompleteGraph, OutCompleteGraph, Folder, VisitedLinks, Starts, Contains, Ends)
-	      	  )
+		  )
 	      ),
 	      % Exception taking
 	      _,
@@ -1692,19 +1692,19 @@ crawler :-
     (
         Codes = "exit"
     ->
-    	% End prompt with "exit" command
-    	nl,
+	% End prompt with "exit" command
+	nl,
         writeln('=== Thanks for using Crawler1.0 ==='),
         true
     ;
-    	% Set initial time
-    	set_i_time,
-    	% Process command
-    	nl,
+	% Set initial time
+	set_i_time,
+	% Process command
+	nl,
         writeln('=== Executing command ==='),
         nl,
         process_command(Codes),
-        % Write elapsed time 
+        % Write elapsed time
         write_f_time,
         % Fail to relaunch crawler prompt
         fail
@@ -1716,10 +1716,10 @@ crawler :-
 process_command(Codes) :-
     % Convert the list of codes to a list of code lists of words
     (
-    	phrase(split_by_spaces(AtomList), Codes) ->
+	phrase(split_by_spaces(AtomList), Codes) ->
         % Check if the command is OK and launch the appropiate predicate
         check_and_execute(AtomList)
-    	;
+	;
         writeln('Error: invalid command. Please, type "help" to get the command using list.')
     ).
 
@@ -1731,7 +1731,7 @@ split_by_spaces([A|As]) -->
     rm_spaces(_),
     get_chars([X|Xs]),
     {
-    	atom_codes(A, [X|Xs])
+	atom_codes(A, [X|Xs])
     },
     rm_spaces(_),
     split_by_spaces(As).
@@ -1740,24 +1740,24 @@ split_by_spaces([]) --> [].
 % DCG to consume all valid chars (not spaces) from the entry list
 % Param: initial code list
 
-get_chars([X|Xs]) --> 
-	get_char(X), !, 
+get_chars([X|Xs]) -->
+	get_char(X), !,
 	get_chars(Xs).
 get_chars([]) --> [].
 
 % DCG to consume all spaces from the entry list
 % Param: initial code list
 
-rm_spaces([X|Xs]) --> 
-	get_space(X), !, 
+rm_spaces([X|Xs]) -->
+	get_space(X), !,
 	rm_spaces(Xs).
 rm_spaces([]) --> [].
 
 % DCG to check for spaces
 % Param: character code to be checked
 
-get_space(X) --> 
-	[X], 
+get_space(X) -->
+	[X],
 	{
 		% Check for space code
 		code_type(X, space)
@@ -1766,8 +1766,8 @@ get_space(X) -->
 % DCG to check for chars except spaces
 % Param: character code to be checked
 
-get_char(X) --> 
-	[X], 
+get_char(X) -->
+	[X],
 	{
 		% Check for any code except space one
 		\+ code_type(X, space)
@@ -1782,60 +1782,60 @@ check_and_execute([scan | Options]) :-
     !,
     % Get -u param. This parameter is required
     (get_needed_param('-u', FOptions, URL) ->
-    	(
-    	write('Starting URL: '),
-       	writeln(URL)
-       	)
-    	;
-       	fail
+	(
+	write('Starting URL: '),
+	writeln(URL)
+	)
+	;
+	fail
     ),
     % Check for valid URL
     (startsWithHttp(URL) ->
-    	writeln('Valid URL.')
-    	;
-    	(writeln('Invalid URL. Ensure it starts with HTTP protocol (SSL not supported).'),
-       	fail)
+	writeln('Valid URL.')
+	;
+	(writeln('Invalid URL. Ensure it starts with HTTP protocol (SSL not supported).'),
+	fail)
     ),
     % Get optional parameters
     (get_number_param('-d', FOptions, Depth) ->
-       	(
-    	write('Scanning depth: '),
-       	writeln(Depth)
-       	)
-       	;
-       	(Depth = 0,
-       	write('Scanning depth: '),
-       	writeln(Depth))
+	(
+	write('Scanning depth: '),
+	writeln(Depth)
+	)
+	;
+	(Depth = 0,
+	write('Scanning depth: '),
+	writeln(Depth))
     ),
     (get_param('-s', FOptions, Starts) ->
-       	(
-    	write('Scanning links starting with: '),
-       	writeln(Starts)
-       	)
-       	;
-       	(Starts = '',
-       	write('Scanning links starting with: '),
-       	writeln(Starts))
+	(
+	write('Scanning links starting with: '),
+	writeln(Starts)
+	)
+	;
+	(Starts = '',
+	write('Scanning links starting with: '),
+	writeln(Starts))
     ),
     (get_param('-c', FOptions, Contains) ->
-       	(
-    	write('Scanning links containing: '),
-       	writeln(Contains)
-       	)
-       	;
-       	(Contains = '',
-       	write('Scanning links containing: '),
-       	writeln(Contains))
+	(
+	write('Scanning links containing: '),
+	writeln(Contains)
+	)
+	;
+	(Contains = '',
+	write('Scanning links containing: '),
+	writeln(Contains))
     ),
     (get_param('-e', FOptions, Ends) ->
-       	(
-    	write('Scanning links ending with: '),
-       	writeln(Ends)
-       	)
-       	;
-       	(Ends = '',
-       	write('Scanning links ending with: '),
-       	writeln(Ends))
+	(
+	write('Scanning links ending with: '),
+	writeln(Ends)
+	)
+	;
+	(Ends = '',
+	write('Scanning links ending with: '),
+	writeln(Ends))
     ),
     write('Execute: scan -u '),write(URL),
     write(' -d '),write(Depth),
@@ -1853,60 +1853,60 @@ check_and_execute([find | Options]) :-
     !,
     % Get -u param. This parameter is required
     (get_needed_param('-u', FOptions, URL) ->
-    	(
-    	write('Starting URL: '),
-       	writeln(URL)
-       	)
-    	;
-       	fail
+	(
+	write('Starting URL: '),
+	writeln(URL)
+	)
+	;
+	fail
     ),
     % Check for valid URL
     (startsWithHttp(URL) ->
-    	writeln('Valid URL.')
-    	;
-    	(writeln('Invalid URL. Ensure it starts with HTTP protocol (SSL not supported).'),
-       	fail)
+	writeln('Valid URL.')
+	;
+	(writeln('Invalid URL. Ensure it starts with HTTP protocol (SSL not supported).'),
+	fail)
     ),
     % Get optional parameters
     (get_number_param('-d', FOptions, Depth) ->
-       	(
-    	write('Scanning depth: '),
-       	writeln(Depth)
-       	)
-       	;
-       	(Depth = 0,
-       	write('Scanning depth: '),
-       	writeln(Depth))
+	(
+	write('Scanning depth: '),
+	writeln(Depth)
+	)
+	;
+	(Depth = 0,
+	write('Scanning depth: '),
+	writeln(Depth))
     ),
     (get_param('-s', FOptions, Starts) ->
-       	(
-    	write('Finding links starting with: '),
-       	writeln(Starts)
-       	)
-       	;
-       	(Starts = '',
-       	write('Finding links starting with: '),
-       	writeln(Starts))
+	(
+	write('Finding links starting with: '),
+	writeln(Starts)
+	)
+	;
+	(Starts = '',
+	write('Finding links starting with: '),
+	writeln(Starts))
     ),
     (get_param('-c', FOptions, Contains) ->
-       	(
-    	write('Finding links containing: '),
-       	writeln(Contains)
-       	)
-       	;
-       	(Contains = '',
-       	write('Finding links containing: '),
-       	writeln(Contains))
+	(
+	write('Finding links containing: '),
+	writeln(Contains)
+	)
+	;
+	(Contains = '',
+	write('Finding links containing: '),
+	writeln(Contains))
     ),
     (get_param('-e', FOptions, Ends) ->
-       	(
-    	write('Finding links ending with: '),
-       	writeln(Ends)
-       	)
-       	;
-       	(Ends = '',
-       	write('Finding links ending with: '),
-       	writeln(Ends))
+	(
+	write('Finding links ending with: '),
+	writeln(Ends)
+	)
+	;
+	(Ends = '',
+	write('Finding links ending with: '),
+	writeln(Ends))
     ),
     write('Execute: find -u '),write(URL),
     write(' -d '),write(Depth),
@@ -1928,7 +1928,7 @@ check_and_execute([help | _]) :-
 	writeln('    -s : (Optional) Scan only links which starts with the given pattern.'),
 	writeln('    -c : (Optional) Scan only links which contains the given pattern.'),
 	writeln('    -e : (Optional) Scan only links which ends with the given pattern.'),nl,
-	writeln('  1.2.- Examples:'),	
+	writeln('  1.2.- Examples:'),
 	writeln('scan -u http://www.fdi.ucm.es -d 2 -> Scans for all data starting at FDI web and with depth 2'),
 	nl,
 	writeln('2.- Command to retrieve filtered URLs from a starting one'),nl,
@@ -1955,10 +1955,10 @@ check_and_execute([help | _]) :-
 	writeln('  4.2.- Internet connection fails'),
 	writeln('As you can imagine, you need to stay connected to the Internet while using this application. In case that your connection is lost during one scanning process, the system may continue trying to connect.'),
 	writeln('If the application gets stucked on a web during a long time due to some connection problem, you can try Ctrl+C and then type "a" to abort that URL scanning. In this case the system will try to continue the execution to avoid losing data due to an unusual connection problem.'),
-	!. 
+	!.
 check_and_execute(_) :-
 	writeln('Command not found or invalid params. Please, type "help" to check for available commands and formats.'),
-	!. 
+	!.
 
 % Predicate to format the received options list
 % Param: input command parameters list
@@ -1969,7 +1969,7 @@ format_options([ Type, Value | ROp], FOp) :-
 	format_options(ROp, FO1),
 	append([(Type,Value)], FO1, FOp),
 	!.
-format_options :-
+format_options(_, _) :-
 	writeln('Invalid options format.  Please check your syntax or type "help" to list all available commands.'),
     fail.
 
@@ -1986,7 +1986,7 @@ get_needed_param(Type , [], _) :-
 	name(EText, Error),
 	writeln(EText),
     fail.
-get_needed_param(Type, [ (Type, Value) | _ ], Value) :- 
+get_needed_param(Type, [ (Type, Value) | _ ], Value) :-
 	(
 		atomic(Value) ->
 		!
@@ -1998,7 +1998,7 @@ get_needed_param(Type, [ (Type, Value) | _ ], Value) :-
 		append(A1, " parameter value. Please, check it is a valid atom.", Error),
 		name(EText, Error),
 		writeln(EText),
-    	fail
+	fail
 	)
 	.
 get_needed_param(Type, [ _ | ParamList ], Value) :-
@@ -2013,7 +2013,7 @@ get_needed_param(Type, [ _ | ParamList ], Value) :-
 get_param(_ , [], _) :-
 	!,
     fail.
-get_param(Type, [ (Type, Value) | _ ], Value) :- 
+get_param(Type, [ (Type, Value) | _ ], Value) :-
 	!,
 	(
 		atomic(Value) ->
@@ -2025,14 +2025,14 @@ get_param(Type, [ (Type, Value) | _ ], Value) :-
 		append(A1, " parameter value. Please, check it is a valid atom.", Error),
 		name(EText, Error),
 		writeln(EText),
-    	fail
+	fail
 	)
 	.
 get_param(Type, [ _ | ParamList ], Value) :-
 	!,
 	get_param(Type, ParamList, Value).
 
-% Predicate to get one number param from the list. In this case 
+% Predicate to get one number param from the list. In this case
 % we must ensure the numbes is greater or equal than zero
 % Param: type of param to be searched (i. e.: '-d')
 % Param: list of user params
@@ -2041,7 +2041,7 @@ get_param(Type, [ _ | ParamList ], Value) :-
 get_number_param(_ , [], _) :-
 	!,
     fail.
-get_number_param(Type, [ (Type, Value) | _ ], Num) :- 
+get_number_param(Type, [ (Type, Value) | _ ], Num) :-
 	!,
 	(
         (
@@ -2062,7 +2062,7 @@ get_number_param(Type, [ (Type, Value) | _ ], Num) :-
 		append(A1, " parameter value. Please, check it is a valid integer greater or equal than zero.", Error),
 		name(EText, Error),
 		writeln(EText),
-    	fail
+	fail
 	)
 	.
 get_number_param(Type, [ _ | ParamList ], Value) :-
@@ -2075,17 +2075,17 @@ get_number_param(Type, [ _ | ParamList ], Value) :-
 
 % Set the initial time to be compared once the execution finishes
 
-set_i_time:- 
-	retractall(i_time(_)), 
+set_i_time:-
+	retractall(i_time(_)),
 	get_time(T),
-  	assert(i_time(T)).
+	assert(i_time(T)).
 
 % Predicate to compare the initial with the ending time and ouputs
 % the elapsed time
 
 write_f_time:-
-        get_time(T2), 
-        i_time(T1), 
+        get_time(T2),
+        i_time(T1),
         T is (T2-T1),
         nl,
         writeln('==============='),
