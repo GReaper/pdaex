@@ -1982,7 +1982,7 @@ get_needed_param(Type , [], _) :-
 	!,
 	name(Type, C1),
 	append("Invalid ", C1, A1),
-	append(A1, " parameter value or param not found. Please check your Please check your syntax or type \"help\" to list all available commands.", Error),
+	append(A1, " parameter value or param not found. Please check your syntax or type \"help\" to list all available commands.", Error),
 	name(EText, Error),
 	writeln(EText),
     fail.
